@@ -1,0 +1,14 @@
+{
+  "name": "emporium-bot",
+  "version": "1.0.0",
+  "description": "Be careful about what you whish",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Diego Ruiz Piqueras",
+  "license": "ISC",
+  "dependencies": {
+    "discord.js": "^13.6.0"
+  }
+}
