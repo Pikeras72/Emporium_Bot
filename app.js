@@ -3,18 +3,25 @@
 
 const Discord = require("discord.js");
 
-const Client = new Discord.Client({ intents : ["GUILDS", "GUILD_MESSAGES", "DIRECT_MESSAGES"],
+const client = new Discord.Client({ intents : ["GUILDS", "GUILD_MESSAGES", "DIRECT_MESSAGES"],
     partials: ["MESSAGE", "CHANNEL", "GUILD_MEMBER", "USER", "REACTION"]});
 
-Client.on("ready", () => {
-    console.log(Client.user.tag + " comienza su camino");
+client.on('ready', () => {
+    console.log(client.user.tag + " comienza su camino");
+    client.user.setStatus('dnd'); // online, idle, invisible, dnd
+    console.log('Bot status: ',client.user.presence.status);
 });
 
-Client.on("messageCreate", (message) => {
-    if (message.author.bot == false && (message.content == "$hola" || message.content == "$hello")){
-        message.channel.send(`Recuerda ${message.author}... tu oscuridad es mi luz`);
-        console.log(message);
+// Bot listenning messages
+client.on("message", msg => {
+    if (msg.author.bot === false && (msg.content === "$hola" || msg.content === "$hello")){
+        msg.channel.send(`Recuerda ${msg.author}... tu oscuridad es mi luz`);
+        console.log(msg);
+    }
+
+    if(msg.content === "$profilePicture"){
+        msg.channel.send('https://mymodernmet.com/wp/wp-content/uploads/2019/10/nasa-black-hole-visualization-2.gif');
     }
 });
 
-Client.login("OTczNjUyNjE3NDI5Mzk3NTA0.GfDYgI.mCfvZC1JgkbbXVO4uwKJT-_pdLMCikfznZZQ9M");
+client.login("OTczNjUyNjE3NDI5Mzk3NTA0.GfDYgI.mCfvZC1JgkbbXVO4uwKJT-_pdLMCikfznZZQ9M");
