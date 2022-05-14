@@ -90,5 +90,9 @@ client.on("message", function(msg) {
         msg.reply(`Aún no tengo el conocimiento necesario para entender esa orden ${msg.author}`);
     }
 });
+/*
+client.on("guildMemberAdd",function (member){
+    general.send(`Has llegado a tu final ${member.user.username}`);
+});*/
 
 client.login("OTczNjUyNjE3NDI5Mzk3NTA0.GfDYgI.mCfvZC1JgkbbXVO4uwKJT-_pdLMCikfznZZQ9M");
