@@ -27,22 +27,22 @@ client.on("message", function(msg) {
     }
     else if (command === "sum") {
         const numArgs = args.map(x => parseFloat(x));
-        const sum = numArgs.reduce((counter, x) => counter += x);
+        const sum = numArgs.reduce((counter, x) => counter + x);
         msg.reply(`Resultado de la suma: ${sum}`);
     }
     else if (command === "sub") {
         const numArgs = args.map(x => parseFloat(x));
-        const sub = numArgs.reduce((counter, x) => counter -= x);
+        const sub = numArgs.reduce((counter, x) => counter - x);
         msg.reply(`Resultado de la resta: ${sub}`);
     }
     else if (command === "mul") {
         const numArgs = args.map(x => parseFloat(x));
-        const mul = numArgs.reduce((counter, x) => counter *= x);
+        const mul = numArgs.reduce((counter, x) => counter * x);
         msg.reply(`Resultado de la multiplicación: ${mul}`);
     }
     else if (command === "div") {
         const numArgs = args.map(x => parseFloat(x));
-        const div = numArgs.reduce((counter, x) => counter /= x);
+        const div = numArgs.reduce((counter, x) => counter / x);
         msg.reply(`Resultado de la división: ${div}`);
     }
     else if (command === "picture"){
