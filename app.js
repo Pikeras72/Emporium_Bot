@@ -15,7 +15,7 @@ client.on('ready', () => {
     console.log('Bot status: ',client.user.presence.status);
 });
 
-client.on("message", async function(msg) {
+client.on("message", function(msg) {
     if (msg.author.bot) return;
     if (!msg.content.startsWith(prefix)) return;
     if (blockedUsers.includes(msg.author.id)){msg.reply(`${msg.author} no eres digno de poder utilizarme`);return;}
@@ -49,10 +49,10 @@ client.on("message", async function(msg) {
         msg.channel.send('https://mymodernmet.com/wp/wp-content/uploads/2019/10/nasa-black-hole-visualization-2.gif');
     }
     else if (command === 'server') {
-        await msg.reply(`Nombre del server: ${msg.guild.name}\nNumero de integrantes: ${msg.guild.memberCount}`);
+        msg.reply(`Nombre del server: ${msg.guild.name}\nNumero de integrantes: ${msg.guild.memberCount}`);
     }
     else if (command === 'user') {
-        await msg.reply(`Tu tag: ${msg.author.tag}\nTu ID: ${msg.author.id}`);
+        msg.reply(`Tu tag: ${msg.author.tag}\nTu ID: ${msg.author.id}`);
     }
     else if (command === 'block'){
         const userBlock = args.shift();
