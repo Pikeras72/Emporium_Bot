@@ -8,6 +8,7 @@ const client = new Discord.Client({
     intents: new Discord.Intents(32767)
 });
 const prefix = "$";
+const blocked = [[]];
 const blockedUsers = [];//añadir los ids de los bloqueados
 const users = [];//añadir los ids de los usuarios
 
@@ -52,7 +53,7 @@ client.on("message", msg => {
                         break;
                     }
                     case 5:{
-                        msg.reply(`Mis registros indican que ${msg.author} es una gran persona, protéjanla a cualquier coste`);
+                        msg.reply(`Mis registros indican que ${msg.author} es una gran persona, protéjanla a cualquier costo`);
                         break;
                     }
                     case 6:{
@@ -188,13 +189,13 @@ client.on("message", msg => {
                 .setColor('RED')
                 .setTimestamp()
                 .setTitle(':x: Aún no tengo el conocimiento necesario para entender esa orden')
-                .setDescription(`Prueba a usar otro comando o escribe  $help  para descubrir mis conocimientos`)
+                .setDescription(`Prueba a usar otro comando o escribe  $help  para descubrir mis secretos`)
                 .setFooter(msg.author.username)
             msg.reply({embeds:[notCommand]});
     }
 });
 
-client.on("guildMemberAdd",async member => {
+client.on("guildMemberAdd",member => {
     users.push(member.user.id);
     const newMember = new Discord.MessageEmbed()
         .setColor('DARK_ORANGE')
@@ -203,9 +204,30 @@ client.on("guildMemberAdd",async member => {
         .setDescription(`Detectado en el servidor ${member.guild.name} nuevo usuario con nombre: ${member.user.username}. ¡Bienvenid@!`)
         .setThumbnail(member.user.avatarURL())
         .setFooter(member.user.username)
-    const channel = client.channels.cache.find(channel => channel.name.toLowerCase().includes('bienvenida') ||  channel.name.toLowerCase().includes('bienvenido') || channel.name.toLowerCase().includes('bienvenidos') || channel.name.toLowerCase().includes('bienvenidas') || channel.name.toLowerCase().includes('gente nueva') || channel.name.toLowerCase().includes('nuevos miembros') || channel.name.toLowerCase().includes('new members') || channel.name.toLowerCase().includes('welcome'))
+    const channel = member.guild.channels.cache.find(channel => channel.name.toLowerCase().includes('bienvenida') ||  channel.name.toLowerCase().includes('bienvenido') || channel.name.toLowerCase().includes('bienvenidos') || channel.name.toLowerCase().includes('bienvenidas') || channel.name.toLowerCase().includes('gente nueva') || channel.name.toLowerCase().includes('nuevos miembros') || channel.name.toLowerCase().includes('new members') || channel.name.toLowerCase().includes('welcome'))
     if (channel !== undefined){
         channel.send({embeds:[newMember]});
+    }
+});
+
+client.on("guildMemberRemove", (member) => {
+    const indexUser = users.indexOf(member.user.id);
+    users.splice(indexUser, 1);
+    const deleteMember = new Discord.MessageEmbed()
+        .setTimestamp()
+        .setTitle('La expansión no se detendrá')
+        .setColor('DARK_RED')
+        .setDescription(`Se ha añadido en el servidor ${member.guild.name} un nuevo cartel de WANTED para el usuario: ${member.user.username}.`)
+        .setThumbnail(member.user.avatarURL())
+        .setFooter(member.user.username)
+    const channel = member.guild.channels.cache
+        .filter((ch) => ch.type === 'GUILD_TEXT')
+        .find(
+            (channel => channel.name.toLowerCase().includes('general') ||  channel.name.toLowerCase().includes('despedidas') || channel.name.toLowerCase().includes('despedido') || channel.name.toLowerCase().includes('eliminados'))
+        );
+    if (channel !== undefined){
+        console.log(channel);
+        channel.send({embeds:[deleteMember]});
     }
 });
 
