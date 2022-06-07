@@ -1,6 +1,6 @@
 // TOKEN: OTczNjUyNjE3NDI5Mzk3NTA0.GgoBC7.MQ2PdgWYrr5sL4on7842tQL5RX3soO84808lPg
 // INVITE LINK: https://discord.com/api/oauth2/authorize?client_id=973652617429397504&permissions=8&scope=bot
-//arreglar roles y array de baneos por server
+//arreglar roles y mostrar personas baneadas en el server
 
 const Discord = require("discord.js");
 
@@ -8,8 +8,8 @@ const client = new Discord.Client({
     intents: new Discord.Intents(32767)
 });
 const prefix = "$";
-const blocked = [[]];
-const blockedUsers = [];//añadir los ids de los bloqueados
+var blockedGuNa = [];
+var blockedGuID = [];
 const users = [];//añadir los ids de los usuarios
 
 client.on('ready', () => {
@@ -22,7 +22,11 @@ client.on('ready', () => {
 client.on("message", msg => {
     if (msg.author.bot) return;
     if (!msg.content.startsWith(prefix)) return;
-    if (blockedUsers.includes(msg.author.id)){msg.reply(`${msg.author} no eres digno de poder utilizarme`);return;}
+    var posBlockServer = blockedGuNa.indexOf(msg.guild.id);
+    if (posBlockServer !== -1 && blockedGuID[posBlockServer].includes(msg.author.id)){
+        msg.reply(`${msg.author} parece que no eres digno de poder utilizarme`);
+        return;
+    }
     const args = msg.content.slice(prefix.length).trim().split(/ +/g)
     const command = args.shift().toLowerCase();
     const numArgs = args.map(x => parseFloat(x));
@@ -134,28 +138,54 @@ client.on("message", msg => {
         case 'block':
             if (userBlock === undefined){
                 msg.channel.send(`No has especificado la ID del usuario a bloquear`);
+            }else if (blockedGuNa.includes(msg.guild.id)){
+                var positionBlocked = blockedGuNa.indexOf(msg.guild.id);
+                if (!blockedGuID[positionBlocked].includes(userBlock)){
+                    blockedGuID[positionBlocked].push(userBlock);
+                    msg.channel.send(`Se ha bloqueado mi uso al/la usuari@ con ID: ${userBlock}`);
+                }else{
+                    msg.channel.send(`Est@ usuari@ (ID: ${userBlock}) ya estaba bloquead@, se ve que no perdonas... `);
+                }
             }else{
-                blockedUsers.push(userBlock);
-                msg.channel.send(`Se ha bloqueado mi uso al usuario con ID: ${userBlock}`);
+                blockedGuNa.push(msg.guild.id);
+                var actualBlocked = [userBlock];
+                blockedGuID.push(actualBlocked);
+                msg.channel.send(`Se ha bloqueado mi uso al/la usuari@ con ID: ${userBlock}`);
             }
+            console.log(blockedGuID);
+            console.log(blockedGuNa);
             break;
         case 'unblock':
             if (userBlock === undefined){
                 msg.reply(`No has especificado la ID del usuario a desbloquear`);
+            }else if (!blockedGuNa.includes(msg.guild.id)){
+                msg.channel.send('No hay ninguna persona baneada en este server, es un lugar pacífico');
             }else{
-                const index = blockedUsers.indexOf(userBlock);
-                if (index > -1) {
-                    blockedUsers.splice(index, 1);// 2nd parameter means remove one item only
-                    msg.channel.send(`Se ha desbloqueado mi uso al usuario con ID: ${userBlock}`);
+                var positionBlocked = blockedGuNa.indexOf(msg.guild.id);
+                if (blockedGuID[positionBlocked].indexOf(userBlock) === -1){
+                    msg.channel.send(`No hay nadie con ID: ${userBlock} que esté bloquead@ en este server`);
                 }else{
-                    msg.channel.send(`El usuario con ID: ${userBlock} ya estaba desbloqueado o no se encuentra en el servidor`);
+                    var positionUnblock = blockedGuID[positionBlocked].indexOf(userBlock);
+                    blockedGuID[positionBlocked].splice(positionUnblock, 1);
+                    if (blockedGuID[positionBlocked] === []){
+                        blockedGuID.splice(positionBlocked, 1);
+                        blockedGuNa.splice(positionBlocked, 1);
+                    }
+                    msg.channel.send(`Se ha desbloqueado mi uso a la persona con ID: ${userBlock}`);
                 }
             }
             break;
         case 'unblockall':
-            while (blockedUsers.length > 0){
-                const user = blockedUsers.pop();
-                msg.channel.send(`Se ha desbloqueado mi uso al usuario con ID: ${user}`);
+            var positionBlocked = blockedGuNa.indexOf(msg.guild.id);
+            if (positionBlocked !== -1){
+                while (blockedGuID[positionBlocked].length > 0){
+                    const user = blockedGuID[positionBlocked].pop();
+                    msg.channel.send(`Se ha desbloqueado mi uso al usuario con ID: ${user} en el servidor: ${msg.guild.name}`);
+                }
+                blockedGuID.splice(positionBlocked, 1);
+                blockedGuNa.splice(positionBlocked, 1);
+            }else{
+                msg.channel.send('No hay ninguna persona baneada en este server, es un lugar pacífico');
             }
             break;
         case 'myroles':
