@@ -1,6 +1,6 @@
 // TOKEN: OTczNjUyNjE3NDI5Mzk3NTA0.GgoBC7.MQ2PdgWYrr5sL4on7842tQL5RX3soO84808lPg
 // INVITE LINK: https://discord.com/api/oauth2/authorize?client_id=973652617429397504&permissions=8&scope=bot
-//arreglar roles y mostrar personas baneadas en el server
+//arreglar roles y mostrar personas baneadas en el server, añadir un invite y q te muestre tu avatar y numero random
 
 const Discord = require("discord.js");
 
@@ -30,7 +30,10 @@ client.on("message", msg => {
     const args = msg.content.slice(prefix.length).trim().split(/ +/g)
     const command = args.shift().toLowerCase();
     const numArgs = args.map(x => parseFloat(x));
-    const userBlock = args.shift();
+    let userBlock;
+    if (command === 'block' ||command === 'unblock' || command === 'unblockall'){
+        userBlock = args.shift();
+    }
     const server = msg.guild;
     let cnt = 1;
     switch (command){
@@ -213,6 +216,16 @@ client.on("message", msg => {
                 .setTitle('Lista de posibles comandos del bot:\n')
                 .setDescription('\n`$hola` | `$hello` :arrow_right: Saludo del bot\n* `$sum [numero1] [numero2] ...` :arrow_right: Suma todos los números que escribas\n* `$sub [numero1] [numero2] ...` :arrow_right: Resta todos los números que escribas\n* `$mul [numero1] [numero2] ...` :arrow_right: Multiplica todos los números que escribas\n* `$div [numero1] [numero2] ...` :arrow_right: Divide todos los números que escribas\n`$picture` :arrow_right: Muestra la foto que tiene el bot de perfil\n`$server` :arrow_right: Muestra la información del servidor\n`$user` :arrow_right: Muestra la información del propio usuario\n`$block [id de un usuario]` :arrow_right: Prohíbe al usuario con esa id utilizar este bot\n`$unblock [id de un usuario]` :arrow_right: Permite al usuario con esa id utilizar este bot\n`$unblockall`  :arrow_right: Permite a todos los usuarios bloqueados volver a utilizar este bot\n`$showmembers` :arrow_right: Muestra los integrantes del servidor\n`$myroles` :arrow_right: Muestra los roles que tienes\n`$kingdom` :arrow_right: Muestra los servidores que tienen añadido este bot\n\n* (números separados por espacios)')
             msg.channel.send({embeds:[helpCommand]});
+            break;
+        case 'random':
+            if(args.length !== 2 || isNaN(args[0]) || isNaN(args[1]) || numArgs[0] >= numArgs[1]){
+                msg.channel.send("Solo puedes poner dos números, primero el menor número y después el mayor");
+            }else{
+                console.log(numArgs);
+                const randomNum = Math.floor(Math.random()*(numArgs[1]-numArgs[0]+1)+(numArgs[0]));
+                console.log(randomNum);
+                msg.reply(`Número aleatorio obtenido: ${randomNum}`);
+            }
             break;
         default:
             const notCommand = new Discord.MessageEmbed()
