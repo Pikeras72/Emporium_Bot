@@ -1,6 +1,7 @@
 // TOKEN: OTczNjUyNjE3NDI5Mzk3NTA0.GgoBC7.MQ2PdgWYrr5sL4on7842tQL5RX3soO84808lPg
 // INVITE LINK: https://discord.com/api/oauth2/authorize?client_id=973652617429397504&permissions=8&scope=bot
-//arreglar roles y mostrar personas baneadas en el server, añadir un invite y q te muestre tu avatar y numero random
+
+//arreglar roles y mostrar personas baneadas en el server, añadir una invitacion del server para otros usuarios, hacer q las operaciones no permitan letras
 
 const Discord = require("discord.js");
 
@@ -31,8 +32,10 @@ client.on("message", msg => {
     const command = args.shift().toLowerCase();
     const numArgs = args.map(x => parseFloat(x));
     let userBlock;
+    let positionBlocked;
     if (command === 'block' ||command === 'unblock' || command === 'unblockall'){
         userBlock = args.shift();
+        positionBlocked = blockedGuNa.indexOf(msg.guild.id);
     }
     const server = msg.guild;
     let cnt = 1;
@@ -136,13 +139,18 @@ client.on("message", msg => {
             msg.reply(`Nombre del server: ${msg.guild.name}\nNumero de integrantes: ${cnt} miembros y ${server.memberCount-cnt} bots`);// -1 porque hay un bot
             break;
         case 'user':
-            msg.reply(`Tu tag: ${msg.author.tag}\nTu ID: ${msg.author.id}`);
+            const userInfo = new Discord.MessageEmbed()
+                .setColor('DARK_ORANGE')
+                .setTitle(`Información de:  ${msg.author.username}`)
+                .setDescription(`Tu tag es:\n${msg.author.tag}\n\nTu ID es:\n${msg.author.id}\n\nMenudo fotón por cierto:`)
+                .setTimestamp()
+                .setImage(msg.author.avatarURL())
+            msg.reply({embeds:[userInfo]});
             break;
         case 'block':
             if (userBlock === undefined){
                 msg.channel.send(`No has especificado la ID del usuario a bloquear`);
             }else if (blockedGuNa.includes(msg.guild.id)){
-                var positionBlocked = blockedGuNa.indexOf(msg.guild.id);
                 if (!blockedGuID[positionBlocked].includes(userBlock)){
                     blockedGuID[positionBlocked].push(userBlock);
                     msg.channel.send(`Se ha bloqueado mi uso al/la usuari@ con ID: ${userBlock}`);
@@ -155,8 +163,6 @@ client.on("message", msg => {
                 blockedGuID.push(actualBlocked);
                 msg.channel.send(`Se ha bloqueado mi uso al/la usuari@ con ID: ${userBlock}`);
             }
-            console.log(blockedGuID);
-            console.log(blockedGuNa);
             break;
         case 'unblock':
             if (userBlock === undefined){
@@ -164,7 +170,6 @@ client.on("message", msg => {
             }else if (!blockedGuNa.includes(msg.guild.id)){
                 msg.channel.send('No hay ninguna persona baneada en este server, es un lugar pacífico');
             }else{
-                var positionBlocked = blockedGuNa.indexOf(msg.guild.id);
                 if (blockedGuID[positionBlocked].indexOf(userBlock) === -1){
                     msg.channel.send(`No hay nadie con ID: ${userBlock} que esté bloquead@ en este server`);
                 }else{
@@ -179,7 +184,6 @@ client.on("message", msg => {
             }
             break;
         case 'unblockall':
-            var positionBlocked = blockedGuNa.indexOf(msg.guild.id);
             if (positionBlocked !== -1){
                 while (blockedGuID[positionBlocked].length > 0){
                     const user = blockedGuID[positionBlocked].pop();
@@ -221,11 +225,12 @@ client.on("message", msg => {
             if(args.length !== 2 || isNaN(args[0]) || isNaN(args[1]) || numArgs[0] >= numArgs[1]){
                 msg.channel.send("Solo puedes poner dos números, primero el menor número y después el mayor");
             }else{
-                console.log(numArgs);
                 const randomNum = Math.floor(Math.random()*(numArgs[1]-numArgs[0]+1)+(numArgs[0]));
-                console.log(randomNum);
                 msg.reply(`Número aleatorio obtenido: ${randomNum}`);
             }
+            break;
+        case 'emporium':
+            msg.channel.send('El universo se expande...\n\nhttps://discord.com/api/oauth2/authorize?client_id=973652617429397504&permissions=8&scope=bot');
             break;
         default:
             const notCommand = new Discord.MessageEmbed()
