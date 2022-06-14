@@ -1,7 +1,7 @@
 // TOKEN: OTczNjUyNjE3NDI5Mzk3NTA0.GgoBC7.MQ2PdgWYrr5sL4on7842tQL5RX3soO84808lPg
 // INVITE LINK: https://discord.com/api/oauth2/authorize?client_id=973652617429397504&permissions=8&scope=bot
 
-//arreglar roles y mostrar personas baneadas en el server, añadir una invitacion del server para otros usuarios, hacer q las operaciones no permitan letras
+//arreglar roles, añadir una invitacion del server para otros usuarios, hacer q las operaciones no permitan letras y mensaje embed para el comando 'server' y otros comandos, arreglar numero de miembros y bots en el comando `server`
 
 const Discord = require("discord.js");
 
@@ -16,7 +16,7 @@ const users = [];//añadir los ids de los usuarios
 client.on('ready', () => {
     console.log(client.user.tag + " comienza su camino");
     client.user.setStatus('idle'); // online, idle, invisible, dnd
-    client.user.setActivity("Discovering the unknown...");
+    client.user.setActivity(`Discovering the unknown universe... Conquered servers: ${client.guilds.cache.size}`);
     console.log('Bot status: ',client.user.presence.status);
 });
 
@@ -33,7 +33,7 @@ client.on("message", msg => {
     const numArgs = args.map(x => parseFloat(x));
     let userBlock;
     let positionBlocked;
-    if (command === 'block' ||command === 'unblock' || command === 'unblockall'){
+    if (command === 'block' ||command === 'unblock' || command === 'unblockall' || command === 'blockedusers'){
         userBlock = args.shift();
         positionBlocked = blockedGuNa.indexOf(msg.guild.id);
     }
@@ -136,7 +136,7 @@ client.on("message", msg => {
                     }
                 });
             });
-            msg.reply(`Nombre del server: ${msg.guild.name}\nNumero de integrantes: ${cnt} miembros y ${server.memberCount-cnt} bots`);// -1 porque hay un bot
+            msg.reply(`Nombre del server: ${msg.guild.name}\nNumero de integrantes: ${cnt} miembros y ${server.memberCount-cnt} bots`);
             break;
         case 'user':
             const userInfo = new Discord.MessageEmbed()
@@ -192,7 +192,20 @@ client.on("message", msg => {
                 blockedGuID.splice(positionBlocked, 1);
                 blockedGuNa.splice(positionBlocked, 1);
             }else{
-                msg.channel.send('No hay ninguna persona baneada en este server, es un lugar pacífico');
+                msg.channel.send('No hay ninguna persona bloqueada en este server, es un lugar pacífico');
+            }
+            break;
+        case 'blockedusers':
+            if (positionBlocked !== -1){
+                var cnt2 = blockedGuID[positionBlocked].length-1;
+                msg.channel.send('Usuarios Bloqueados en este server:\n');
+                while (cnt2 >= 0){
+                    const user = blockedGuID[positionBlocked][cnt2];
+                    msg.channel.send(`Usuario bloqueado con ID: (${user}) en el servidor: ${msg.guild.name}`);
+                    cnt2--;
+                }
+            }else{
+                msg.channel.send('No hay ninguna persona bloqueada en este server, es un lugar pacífico');
             }
             break;
         case 'myroles':
@@ -218,7 +231,7 @@ client.on("message", msg => {
             const helpCommand = new Discord.MessageEmbed()
                 .setColor('BLURPLE')
                 .setTitle('Lista de posibles comandos del bot:\n')
-                .setDescription('\n`$hola` | `$hello` :arrow_right: Saludo del bot\n* `$sum [numero1] [numero2] ...` :arrow_right: Suma todos los números que escribas\n* `$sub [numero1] [numero2] ...` :arrow_right: Resta todos los números que escribas\n* `$mul [numero1] [numero2] ...` :arrow_right: Multiplica todos los números que escribas\n* `$div [numero1] [numero2] ...` :arrow_right: Divide todos los números que escribas\n`$picture` :arrow_right: Muestra la foto que tiene el bot de perfil\n`$server` :arrow_right: Muestra la información del servidor\n`$user` :arrow_right: Muestra la información del propio usuario\n`$block [id de un usuario]` :arrow_right: Prohíbe al usuario con esa id utilizar este bot\n`$unblock [id de un usuario]` :arrow_right: Permite al usuario con esa id utilizar este bot\n`$unblockall`  :arrow_right: Permite a todos los usuarios bloqueados volver a utilizar este bot\n`$showmembers` :arrow_right: Muestra los integrantes del servidor\n`$myroles` :arrow_right: Muestra los roles que tienes\n`$kingdom` :arrow_right: Muestra los servidores que tienen añadido este bot\n\n* (números separados por espacios)')
+                .setDescription('\n`$help` :arrow_right: Muestra los posibles comandos\n`$emporium` :arrow_right: Muestra el ink de invitación del bot\n`$hola` | `$hello` :arrow_right: Saludo del bot\n* `$sum [numero1] [numero2] ...` :arrow_right: Suma todos los números que escribas\n* `$sub [numero1] [numero2] ...` :arrow_right: Resta todos los números que escribas\n* `$mul [numero1] [numero2] ...` :arrow_right: Multiplica todos los números que escribas\n* `$div [numero1] [numero2] ...` :arrow_right: Divide todos los números que escribas\n`$picture` :arrow_right: Muestra la foto que tiene el bot de perfil\n`$server` :arrow_right: Muestra la información del servidor\n`$user` :arrow_right: Muestra la información del propio usuario\n`$block [id de un usuario]` :arrow_right: Prohíbe al usuario con esa id utilizar este bot\n`$blockedusers`  :arrow_right: Muestra los usuarios que no pueden utilizar el bot\n`$unblock [id de un usuario]` :arrow_right: Permite al usuario con esa id utilizar este bot\n`$unblockall`  :arrow_right: Permite a todos los usuarios bloqueados volver a utilizar este bot\n`$showmembers` :arrow_right: Muestra los integrantes del servidor\n`$myroles` :arrow_right: Muestra los roles que tienes\n`$kingdom` :arrow_right: Muestra los servidores que tienen añadido este bot\n* `$random [numero1] [numero2]` :arrow_right: Valor aleatorio entre los dos introducidos\n\n* (números separados por espacios)');
             msg.channel.send({embeds:[helpCommand]});
             break;
         case 'random':
