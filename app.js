@@ -8,6 +8,7 @@ const Discord = require("discord.js");
 const client = new Discord.Client({
     intents: new Discord.Intents(32767)
 });
+
 const prefix = "$";
 var blockedGuNa = [];
 var blockedGuID = [];
