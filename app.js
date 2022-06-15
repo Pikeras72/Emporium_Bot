@@ -1,7 +1,7 @@
 // TOKEN: OTczNjUyNjE3NDI5Mzk3NTA0.GgoBC7.MQ2PdgWYrr5sL4on7842tQL5RX3soO84808lPg
 // INVITE LINK: https://discord.com/api/oauth2/authorize?client_id=973652617429397504&permissions=8&scope=bot
 
-//arreglar roles, añadir una invitacion del server para otros usuarios, hacer q las operaciones no permitan letras y mensaje embed para el comando 'server' y otros comandos, arreglar numero de miembros y bots en el comando `server`
+//arreglar roles, hacer q las operaciones no permitan letras y mensaje embed para el comando 'server' y otros comandos, arreglar numero de miembros y bots en el comando `server`, boton con link a la invitacion del bot al hacer $help y boton al entrar a un sever nuevo para mas detalles (deberas crear canales de bienvenida bla bla...), poner el tiempo q lleavs unido al server al hacer $user, si eso hacer el bot para dos lenguajes
 
 const Discord = require("discord.js");
 
@@ -148,6 +148,11 @@ client.on("message", msg => {
                 .setImage(msg.author.avatarURL())
             msg.reply({embeds:[userInfo]});
             break;
+        case 'invite':
+            msg.channel.createInvite()
+                .then(invite => msg.channel.send(`Utilizalo sabiamente:\n https://discord.gg/${invite.code}`))
+                .catch(console.error);
+            break;
         case 'block':
             if (userBlock === undefined){
                 msg.channel.send(`No has especificado la ID del usuario a bloquear`);
@@ -232,7 +237,7 @@ client.on("message", msg => {
             const helpCommand = new Discord.MessageEmbed()
                 .setColor('BLURPLE')
                 .setTitle('Lista de posibles comandos del bot:\n')
-                .setDescription('\n`$help` :arrow_right: Muestra los posibles comandos\n`$emporium` :arrow_right: Muestra el ink de invitación del bot\n`$hola` | `$hello` :arrow_right: Saludo del bot\n* `$sum [numero1] [numero2] ...` :arrow_right: Suma todos los números que escribas\n* `$sub [numero1] [numero2] ...` :arrow_right: Resta todos los números que escribas\n* `$mul [numero1] [numero2] ...` :arrow_right: Multiplica todos los números que escribas\n* `$div [numero1] [numero2] ...` :arrow_right: Divide todos los números que escribas\n`$picture` :arrow_right: Muestra la foto que tiene el bot de perfil\n`$server` :arrow_right: Muestra la información del servidor\n`$user` :arrow_right: Muestra la información del propio usuario\n`$block [id de un usuario]` :arrow_right: Prohíbe al usuario con esa id utilizar este bot\n`$blockedusers`  :arrow_right: Muestra los usuarios que no pueden utilizar el bot\n`$unblock [id de un usuario]` :arrow_right: Permite al usuario con esa id utilizar este bot\n`$unblockall`  :arrow_right: Permite a todos los usuarios bloqueados volver a utilizar este bot\n`$showmembers` :arrow_right: Muestra los integrantes del servidor\n`$myroles` :arrow_right: Muestra los roles que tienes\n`$kingdom` :arrow_right: Muestra los servidores que tienen añadido este bot\n* `$random [numero1] [numero2]` :arrow_right: Valor aleatorio entre los dos introducidos\n\n* (números separados por espacios)');
+                .setDescription('\n`$help` :arrow_right: Muestra los posibles comandos\n`$emporium` :arrow_right: Muestra el link de invitación del bot\n`$invite` :arrow_right: Muestra el link de invitación del servidor\n`$hola` | `$hello` :arrow_right: Saludo del bot\n* `$sum [numero1] [numero2] ...` :arrow_right: Suma todos los números que escribas\n* `$sub [numero1] [numero2] ...` :arrow_right: Resta todos los números que escribas\n* `$mul [numero1] [numero2] ...` :arrow_right: Multiplica todos los números que escribas\n* `$div [numero1] [numero2] ...` :arrow_right: Divide todos los números que escribas\n`$picture` :arrow_right: Muestra la foto que tiene el bot de perfil\n`$server` :arrow_right: Muestra la información del servidor\n`$user` :arrow_right: Muestra la información del propio usuario\n`$block [id de un usuario]` :arrow_right: Prohíbe al usuario con esa id utilizar este bot\n`$blockedusers`  :arrow_right: Muestra los usuarios que no pueden utilizar el bot\n`$unblock [id de un usuario]` :arrow_right: Permite al usuario con esa id utilizar este bot\n`$unblockall`  :arrow_right: Permite a todos los usuarios bloqueados volver a utilizar este bot\n`$showmembers` :arrow_right: Muestra los integrantes del servidor\n`$myroles` :arrow_right: Muestra los roles que tienes\n`$kingdom` :arrow_right: Muestra los servidores que tienen añadido este bot\n* `$random [numero1] [numero2]` :arrow_right: Valor aleatorio entre los dos introducidos\n\n* (números separados por espacios)');
             msg.channel.send({embeds:[helpCommand]});
             break;
         case 'random':
@@ -263,10 +268,10 @@ client.on("guildMemberAdd",member => {
         .setColor('DARK_ORANGE')
         .setTimestamp()
         .setTitle('El servidor se expande')
-        .setDescription(`Detectado en el servidor ${member.guild.name} nuevo usuario con nombre: ${member.user.username}. ¡Bienvenid@!`)
+        .setDescription(`Nuevo usuario: ${member.user.username} en el servidor: ${member.guild.name}\n ¡Bienvenid@!  Eres el usuario número ${member.guild.memberCount} en llegar.`)
         .setThumbnail(member.user.avatarURL())
         .setFooter(member.user.username)
-    const channel = member.guild.channels.cache.find(channel => channel.name.toLowerCase().includes('bienvenida') ||  channel.name.toLowerCase().includes('bienvenido') || channel.name.toLowerCase().includes('bienvenidos') || channel.name.toLowerCase().includes('bienvenidas') || channel.name.toLowerCase().includes('gente nueva') || channel.name.toLowerCase().includes('nuevos miembros') || channel.name.toLowerCase().includes('new members') || channel.name.toLowerCase().includes('welcome'))
+    let channel = member.guild.channels.cache.find(channel => (channel.name.toLowerCase().includes('bienvenida') || channel.name.toLowerCase().includes('bienvenido') || channel.name.toLowerCase().includes('bienvenidos') || channel.name.toLowerCase().includes('bienvenidas') || channel.name.toLowerCase().includes('gente nueva') || channel.name.toLowerCase().includes('nuevos miembros') || channel.name.toLowerCase().includes('new members') || channel.name.toLowerCase().includes('welcome')) && channel.type === 'GUILD_TEXT' && channel.guild.id === member.guild.id);
     if (channel !== undefined){
         channel.send({embeds:[newMember]});
     }
@@ -276,21 +281,20 @@ client.on("guildMemberRemove", (member) => {
     const indexUser = users.indexOf(member.user.id);
     users.splice(indexUser, 1);
     const deleteMember = new Discord.MessageEmbed()
+        .setColor('RED')
         .setTimestamp()
-        .setTitle('La expansión no se detendrá')
-        .setColor('DARK_RED')
-        .setDescription(`Se ha añadido en el servidor ${member.guild.name} un nuevo cartel de WANTED para el usuario: ${member.user.username}.`)
+        .setTitle('La expansión no se dentendrá')
+        .setDescription(`Hoy decimos adiós en el servidor ${member.guild.name} a... ${member.user.username}.`)
         .setThumbnail(member.user.avatarURL())
         .setFooter(member.user.username)
-    const channel = member.guild.channels.cache
-        .filter((ch) => ch.type === 'GUILD_TEXT')
-        .find(
-            (channel => channel.name.toLowerCase().includes('general') ||  channel.name.toLowerCase().includes('despedidas') || channel.name.toLowerCase().includes('despedido') || channel.name.toLowerCase().includes('eliminados'))
-        );
+    let channel = member.guild.channels.cache.find(channel => (channel.name.toLowerCase().includes('despedidas') || channel.name.toLowerCase().includes('goodbye') || channel.name.toLowerCase().includes('eliminations') || channel.name.toLowerCase().includes('eliminados') || channel.name.toLowerCase().includes('expulsados') || channel.name.toLowerCase().includes('desertores')) && channel.type === 'GUILD_TEXT' && channel.guild.id === member.guild.id);
     if (channel !== undefined){
-        console.log(channel);
         channel.send({embeds:[deleteMember]});
     }
+});
+
+client.on('guildCreate', guild => {
+    guild.systemChannel.send('They call me Emporium. Thanks for inviting me, to see all the commands write `$help`\nDiscover the unknow...')
 });
 
 client.login("OTczNjUyNjE3NDI5Mzk3NTA0.GgoBC7.MQ2PdgWYrr5sL4on7842tQL5RX3soO84808lPg");
