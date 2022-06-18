@@ -1,7 +1,7 @@
 // TOKEN: OTczNjUyNjE3NDI5Mzk3NTA0.GgoBC7.MQ2PdgWYrr5sL4on7842tQL5RX3soO84808lPg
 // INVITE LINK: https://discord.com/api/oauth2/authorize?client_id=973652617429397504&permissions=8&scope=bot
 
-//arreglar roles, hacer q las operaciones no permitan letras y mensaje embed para el comando 'server' y otros comandos, arreglar numero de miembros y bots en el comando `server`, boton con link a la invitacion del bot al hacer $help y boton al entrar a un sever nuevo para mas detalles (deberas crear canales de bienvenida bla bla...), poner el tiempo q lleavs unido al server al hacer $user, si eso hacer el bot para dos lenguajes
+//arreglar roles, hacer que las operaciones no permitan letras y mensaje embed para el comando 'server' y otros comandos, arreglar numero de miembros y bots en el comando `server`, boton con link a la invitacion del bot al hacer $help y boton al entrar a un sever nuevo para mas detalles (deberas crear canales de bienvenida bla bla...), poner el tiempo q lleavs unido al server al hacer $user, si eso hacer el bot para dos lenguajes
 
 const Discord = require("discord.js");
 const { MessageActionRow, MessageButton } = require('discord.js');
