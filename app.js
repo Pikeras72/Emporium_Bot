@@ -1,7 +1,7 @@
 // TOKEN: OTczNjUyNjE3NDI5Mzk3NTA0.GgoBC7.MQ2PdgWYrr5sL4on7842tQL5RX3soO84808lPg
 // INVITE LINK: https://discord.com/api/oauth2/authorize?client_id=973652617429397504&permissions=8&scope=bot
 
-//arreglar roles, hacer que las operaciones no permitan letras y mensaje embed para el comando 'server' y otros comandos, arreglar numero de miembros y bots en el comando `server`, boton con link a la invitacion del bot al hacer $help y boton al entrar a un sever nuevo para mas detalles (deberas crear canales de bienvenida bla bla...), poner el tiempo q lleavs unido al server al hacer $user, si eso hacer el bot para dos lenguajes
+//arreglar roles y mensaje embed para el comandos, arreglar numero de miembros y bots en el comando `server` y boton al entrar a un sever nuevo para mas detalles (deberas crear canales de bienvenida bla bla...), poner el tiempo q llevas unido al server al hacer $user, ampliar lenguajes
 
 const Discord = require("discord.js");
 const { MessageActionRow, MessageButton } = require('discord.js');
@@ -122,10 +122,21 @@ client.on("message", async msg => {
             try {
                 const sum = numArgs.reduce((counter, x) => counter + x);
                 if(!isNaN(sum)){
+                    let sumRes;
                     if (languageGu[guildIDS.indexOf(msg.guild.id)] === "english"){
-                        msg.reply(`Result: ${sum}`);
+                        sumRes = new Discord.MessageEmbed()
+                            .setColor('DARK_ORANGE')
+                            .setTitle(`**Result:** `)
+                            .setDescription(`${sum}`)
+                            .setTimestamp()
+                        msg.reply({embeds: [sumRes]} );
                     }else if (languageGu[guildIDS.indexOf(msg.guild.id)] === "español"){
-                        msg.reply(`Resultado de la suma: ${sum}`);
+                        sumRes = new Discord.MessageEmbed()
+                            .setColor('DARK_ORANGE')
+                            .setTitle(`**Resultado de la suma:** `)
+                            .setDescription(`${sum}`)
+                            .setTimestamp()
+                        msg.reply({embeds: [sumRes]} );
                     }
                 }else{
                     if (languageGu[guildIDS.indexOf(msg.guild.id)] === "english"){
@@ -142,10 +153,21 @@ client.on("message", async msg => {
             try {
                 const sub = numArgs.reduce((counter, x) => counter - x);
                 if(!isNaN(sub)){
+                    let subRes;
                     if (languageGu[guildIDS.indexOf(msg.guild.id)] === "english"){
-                        msg.reply(`Result: ${sub}`);
+                        subRes = new Discord.MessageEmbed()
+                            .setColor('DARK_ORANGE')
+                            .setTitle(`**Result:** `)
+                            .setDescription(`${sub}`)
+                            .setTimestamp()
+                        msg.reply({embeds: [subRes]} );
                     }else if (languageGu[guildIDS.indexOf(msg.guild.id)] === "español"){
-                        msg.reply(`Resultado de la resta: ${sub}`);
+                        subRes = new Discord.MessageEmbed()
+                            .setColor('DARK_ORANGE')
+                            .setTitle(`**Resultado de la resta:** `)
+                            .setDescription(`${sub}`)
+                            .setTimestamp()
+                        msg.reply({embeds: [subRes]} );
                     }
                 }else{
                     if (languageGu[guildIDS.indexOf(msg.guild.id)] === "english"){
@@ -162,10 +184,21 @@ client.on("message", async msg => {
             try {
                 const mul = numArgs.reduce((counter, x) => counter * x);
                 if(!isNaN(mul)){
+                    let mulRes;
                     if (languageGu[guildIDS.indexOf(msg.guild.id)] === "english"){
-                        msg.reply(`Result: ${mul}`);
+                        mulRes = new Discord.MessageEmbed()
+                            .setColor('DARK_ORANGE')
+                            .setTitle(`**Result:** `)
+                            .setDescription(`${mul}`)
+                            .setTimestamp()
+                        msg.reply({embeds: [mulRes]} );
                     }else if (languageGu[guildIDS.indexOf(msg.guild.id)] === "español"){
-                        msg.reply(`Resultado de la multiplicación: ${mul}`);
+                        mulRes = new Discord.MessageEmbed()
+                            .setColor('DARK_ORANGE')
+                            .setTitle(`**Resultado de la multiplicación:** `)
+                            .setDescription(`${mul}`)
+                            .setTimestamp()
+                        msg.reply({embeds: [mulRes]} );
                     }
                 }else{
                     if (languageGu[guildIDS.indexOf(msg.guild.id)] === "english"){
@@ -182,10 +215,21 @@ client.on("message", async msg => {
             try {
                 const div = numArgs.reduce((counter, x) => counter / x);
                 if(!isNaN(div)){
+                    let divRes;
                     if (languageGu[guildIDS.indexOf(msg.guild.id)] === "english"){
-                        msg.reply(`Result: ${div}`);
+                        divRes = new Discord.MessageEmbed()
+                            .setColor('DARK_ORANGE')
+                            .setTitle(`**Result:** `)
+                            .setDescription(`${div}`)
+                            .setTimestamp()
+                        msg.reply({embeds: [divRes]} );
                     }else if (languageGu[guildIDS.indexOf(msg.guild.id)] === "español"){
-                        msg.reply(`Resultado de la división: ${div}`);
+                        divRes = new Discord.MessageEmbed()
+                            .setColor('DARK_ORANGE')
+                            .setTitle(`**Resultado de la división:** `)
+                            .setDescription(`${div}`)
+                            .setTimestamp()
+                        msg.reply({embeds: [divRes]} );
                     }
                 }else{
                     if (languageGu[guildIDS.indexOf(msg.guild.id)] === "english"){
@@ -210,10 +254,21 @@ client.on("message", async msg => {
                     }
                 });
             });
+            let infoServer;
             if (languageGu[guildIDS.indexOf(msg.guild.id)] === "english"){
-                msg.reply(`Server's name: ${msg.guild.name}\nNumber of participants: ${cnt} members and ${server.memberCount-cnt} bots`);
+                infoServer = new Discord.MessageEmbed()
+                    .setColor('DARK_ORANGE')
+                    .setTitle(`**Server's Info:** `)
+                    .setDescription(`\n**Server's name:** ${msg.guild.name}\n\n**Number of participants:** ${cnt} members and ${server.memberCount-cnt} bots`)
+                    .setTimestamp()
+                msg.reply({embeds:[infoServer]});
             }else if (languageGu[guildIDS.indexOf(msg.guild.id)] === "español"){
-                msg.reply(`Nombre del server: ${msg.guild.name}\nNumero de integrantes: ${cnt} miembros y ${server.memberCount-cnt} bots`);
+                infoServer = new Discord.MessageEmbed()
+                    .setColor('DARK_ORANGE')
+                    .setTitle(`**Información del server:** `)
+                    .setDescription(`\n**Nombre del server:** ${msg.guild.name}\n\n**Numero de integrantes:** ${cnt} miembros y ${server.memberCount-cnt} bots`)
+                    .setTimestamp()
+                msg.reply({embeds:[infoServer]});
             }
             break;
         case 'user':
@@ -221,15 +276,15 @@ client.on("message", async msg => {
             if (languageGu[guildIDS.indexOf(msg.guild.id)] === "english"){
                  userInfo = new Discord.MessageEmbed()
                     .setColor('DARK_ORANGE')
-                    .setTitle(`Info of:  ${msg.author.username}`)
-                    .setDescription(`Your tag is:\n${msg.author.tag}\n\nYour ID is:\n${msg.author.id}\n\nWhat a photo by the way:`)
+                    .setTitle(`**Info of:**  ${msg.author.username}`)
+                    .setDescription(`**Your tag is:**\n${msg.author.tag}\n\n**Your ID is:**\n${msg.author.id}\n\n**What a photo by the way:**`)
                     .setTimestamp()
                     .setImage(msg.author.avatarURL())
             }else if (languageGu[guildIDS.indexOf(msg.guild.id)] === "español"){
                 userInfo = new Discord.MessageEmbed()
                     .setColor('DARK_ORANGE')
-                    .setTitle(`Información de:  ${msg.author.username}`)
-                    .setDescription(`Tu tag es:\n${msg.author.tag}\n\nTu ID es:\n${msg.author.id}\n\nMenudo fotón por cierto:`)
+                    .setTitle(`**Información de:**  ${msg.author.username}`)
+                    .setDescription(`**Tu tag es:**\n${msg.author.tag}\n\n**Tu ID es:**\n${msg.author.id}\n\n**Menudo fotón por cierto:**`)
                     .setTimestamp()
                     .setImage(msg.author.avatarURL())
             }
@@ -238,11 +293,11 @@ client.on("message", async msg => {
         case 'invite':
             if (languageGu[guildIDS.indexOf(msg.guild.id)] === "english"){
                 msg.channel.createInvite()
-                    .then(invite => msg.channel.send(`Use it wisely:\n https://discord.gg/${invite.code}`))
+                    .then(invite => msg.channel.send(`**Use it wisely:**\n https://discord.gg/${invite.code}`))
                     .catch(console.error);
             }else if (languageGu[guildIDS.indexOf(msg.guild.id)] === "español"){
                 msg.channel.createInvite()
-                    .then(invite => msg.channel.send(`Utilizalo sabiamente:\n https://discord.gg/${invite.code}`))
+                    .then(invite => msg.channel.send(`**Utilizalo sabiamente:**\n https://discord.gg/${invite.code}`))
                     .catch(console.error);
             }
             break;
@@ -269,7 +324,6 @@ client.on("message", async msg => {
                     }
                 }
             }
-            console.log(blockedGuID);
             break;
         case 'unblock':
             if (userBlock === undefined){
@@ -295,16 +349,49 @@ client.on("message", async msg => {
                     }
                 }
             }
-            console.log(blockedGuID);
             break;
         case 'unblockall':
             if (positionBlocked !== -1){
+                let usersUnblocked = "";
                 while (blockedGuID[positionBlocked].length > 0){
                     const user = blockedGuID[positionBlocked].pop();
                     if (languageGu[guildIDS.indexOf(msg.guild.id)] === "english"){
-                        msg.channel.send(`My use has been unblocked to the user with ID: ${user} on the server: ${msg.guild.name}`);
+                        usersUnblocked += `\nMy use has been unblocked to the user with ID: ${user} on the server: ${msg.guild.name}`;
                     }else if (languageGu[guildIDS.indexOf(msg.guild.id)] === "español"){
-                        msg.channel.send(`Se ha desbloqueado mi uso al usuario con ID: ${user} en el servidor: ${msg.guild.name}`);
+                        usersUnblocked += `\nMi uso se ha desbloqueado al usuario con ID: ${user} en el server: ${msg.guild.name}`;
+                    }
+                }
+                if(usersUnblocked !== ""){
+                    let unblockedInfo
+                    if (languageGu[guildIDS.indexOf(msg.guild.id)] === "english") {
+                        unblockedInfo = new Discord.MessageEmbed()
+                            .setColor('DARK_ORANGE')
+                            .setTitle('**List of unblocked users:** ')
+                            .setDescription(`${usersUnblocked}`)
+                            .setTimestamp()
+                        msg.channel.send({embeds: [unblockedInfo]});
+                    } else if (languageGu[guildIDS.indexOf(msg.guild.id)] === "español") {
+                        unblockedInfo = new Discord.MessageEmbed()
+                            .setColor('DARK_ORANGE')
+                            .setTitle('**Lista de usuarios desbloqueados:** ')
+                            .setDescription(`${usersUnblocked}`)
+                            .setTimestamp()
+                        msg.channel.send({embeds: [unblockedInfo]});
+                    }
+                }else{
+                    let noUnblockedInfo;
+                    if (languageGu[guildIDS.indexOf(msg.guild.id)] === "english") {
+                        noUnblockedInfo = new Discord.MessageEmbed()
+                            .setColor('DARK_ORANGE')
+                            .setTitle('**No users blocked**')
+                            .setTimestamp()
+                        msg.channel.send({embeds: [noUnblockedInfo]});
+                    } else if (languageGu[guildIDS.indexOf(msg.guild.id)] === "español") {
+                        noUnblockedInfo = new Discord.MessageEmbed()
+                            .setColor('DARK_ORANGE')
+                            .setTitle('**No hay usuarios bloqueados**')
+                            .setTimestamp()
+                        msg.channel.send({embeds: [noUnblockedInfo]});
                     }
                 }
             }
@@ -312,19 +399,27 @@ client.on("message", async msg => {
         case 'blockedusers':
             if (positionBlocked !== -1){
                 var cnt2 = blockedGuID[positionBlocked].length-1;
-                if (languageGu[guildIDS.indexOf(msg.guild.id)] === "english"){
-                    msg.channel.send('Users blocked on the server:\n');
-                }else if (languageGu[guildIDS.indexOf(msg.guild.id)] === "español"){
-                    msg.channel.send('Usuarios Bloqueados en este server:\n');
-                }
-                while (cnt2 >= 0){
-                    const user = blockedGuID[positionBlocked][cnt2];
+                if (cnt2 >= 0){
                     if (languageGu[guildIDS.indexOf(msg.guild.id)] === "english"){
-                        msg.channel.send(`User blocked with ID: (${user}) on the server: ${msg.guild.name}`);
+                        msg.channel.send('**Users blocked on the server:**\n');
                     }else if (languageGu[guildIDS.indexOf(msg.guild.id)] === "español"){
-                        msg.channel.send(`Usuario bloqueado con ID: (${user}) en el servidor: ${msg.guild.name}`);
+                        msg.channel.send('**Usuarios Bloqueados en este server:**\n');
                     }
-                    cnt2--;
+                    while (cnt2 >= 0){
+                        const user = blockedGuID[positionBlocked][cnt2];
+                        if (languageGu[guildIDS.indexOf(msg.guild.id)] === "english"){
+                            msg.channel.send(`**User blocked with ID:** (${user}) on the server: ${msg.guild.name}`);
+                        }else if (languageGu[guildIDS.indexOf(msg.guild.id)] === "español"){
+                            msg.channel.send(`**Usuario bloqueado con ID:** (${user}) en el servidor: ${msg.guild.name}`);
+                        }
+                        cnt2--;
+                    }
+                }else{
+                    if (languageGu[guildIDS.indexOf(msg.guild.id)] === "english"){
+                        msg.channel.send(`**No users blocked on the server:** ${msg.guild.name}`);
+                    }else if (languageGu[guildIDS.indexOf(msg.guild.id)] === "español"){
+                        msg.channel.send(`**Ningún usuario bloqueado en el servidor:** ${msg.guild.name}`);
+                    }
                 }
             }
             break;
@@ -334,9 +429,9 @@ client.on("message", async msg => {
         case 'showmembers':
             server.members.fetch().then(members => {
                 if (languageGu[guildIDS.indexOf(msg.guild.id)] === "english"){
-                    msg.channel.send(`Server members: `)
+                    msg.channel.send(`**Server members:** `)
                 }else if (languageGu[guildIDS.indexOf(msg.guild.id)] === "español"){
-                    msg.channel.send(`Miembros del servidor: `)
+                    msg.channel.send(`**Miembros del servidor:** `)
                 }
                 // Loop through every members
                 members.forEach(member =>
@@ -350,9 +445,9 @@ client.on("message", async msg => {
             break;
         case 'kingdom':
             if (languageGu[guildIDS.indexOf(msg.guild.id)] === "english"){
-                msg.reply(`Conquered Worlds: ${client.guilds.cache.size}`);
+                msg.reply(`**Conquered Worlds:** ${client.guilds.cache.size}`);
             }else if (languageGu[guildIDS.indexOf(msg.guild.id)] === "español"){
-                msg.reply(`Mundos conquistados: ${client.guilds.cache.size}`);
+                msg.reply(`**Mundos conquistados:** ${client.guilds.cache.size}`);
             }
             break;
         case 'help':
@@ -367,12 +462,12 @@ client.on("message", async msg => {
             if (languageGu[guildIDS.indexOf(msg.guild.id)] === "english"){
                 helpCommand = new Discord.MessageEmbed()
                     .setColor('BLURPLE')
-                    .setTitle('List of the posible bot commands:\n')
+                    .setTitle('**List of the posible bot commands:**\n')
                     .setDescription('\n`$help` :arrow_right: Shows posible commands\n`$language` :arrow_right: Change the language of the bot\n`$emporium` :arrow_right: Shows the bot invitation link\n`$invite` :arrow_right: Shows the server invitation link\n`$hola` | `$hello` :arrow_right: Greeting from the bot\n`$picture` :arrow_right: Shows the bot profile picture\n`$server` :arrow_right: Shows the server information\n`$user` :arrow_right: Shows the user information\n* `$sum [number1] [number2] ...` :arrow_right: Sum all the numbers you write\n* `$sub [number1] [number2] ...` :arrow_right: Subtract all the numbers you write\n* `$mul [number1] [number2] ...` :arrow_right: Multiply all the numbers you write\n* `$div [numero1] [numero2] ...` :arrow_right: Divide all the numbers you write\n`$block [id of the user]` :arrow_right: Block the user with this id to use the bot\n`$blockedusers` :arrow_right: Shows users blocked to use the bot\n`$unblock [id of the user]` :arrow_right: Allows the user with this id to use the bot\n`$unblockall`  :arrow_right: Allows every blocked user to use the bot again\n`$showmembers` :arrow_right: Shows every member of the server\n`$myroles` :arrow_right: Shows your roles\n`$kingdom` :arrow_right: Shows the number of servers where Emporium is\n`$coinflip` :arrow_right: Returns Head or Tail\n* `$random [number1] [number2]` :arrow_right: Random value between the two numbers given\n\n* (numbers are separated by spaces)');
             }else if (languageGu[guildIDS.indexOf(msg.guild.id)] === "español"){
                 helpCommand = new Discord.MessageEmbed()
                     .setColor('BLURPLE')
-                    .setTitle('Lista de posibles comandos del bot:\n')
+                    .setTitle('**Lista de posibles comandos del bot:**\n')
                     .setDescription('\n`$help` :arrow_right: Muestra los posibles comandos\n`$language` :arrow_right: Cambia el idioma del bot\n`$emporium` :arrow_right: Muestra el link de invitación del bot\n`$invite` :arrow_right: Muestra el link de invitación del servidor\n`$hola` | `$hello` :arrow_right: Saludo del bot\n`$picture` :arrow_right: Muestra la foto que tiene el bot de perfil\n`$server` :arrow_right: Muestra la información del servidor\n`$user` :arrow_right: Muestra la información del propio usuario\n* `$sum [numero1] [numero2] ...` :arrow_right: Suma todos los números que escribas\n* `$sub [numero1] [numero2] ...` :arrow_right: Resta todos los números que escribas\n* `$mul [numero1] [numero2] ...` :arrow_right: Multiplica todos los números que escribas\n* `$div [numero1] [numero2] ...` :arrow_right: Divide todos los números que escribas\n`$block [id de un usuario]` :arrow_right: Prohíbe al usuario con esa id utilizar este bot\n`$blockedusers`  :arrow_right: Muestra los usuarios que no pueden utilizar el bot\n`$unblock [id de un usuario]` :arrow_right: Permite al usuario con esa id utilizar este bot\n`$unblockall`  :arrow_right: Permite a todos los usuarios bloqueados volver a utilizar este bot\n`$showmembers` :arrow_right: Muestra los integrantes del servidor\n`$myroles` :arrow_right: Muestra los roles que tienes\n`$kingdom` :arrow_right: Muestra los servidores que tienen añadido este bot\n`$coinflip` :arrow_right: Devuelve Cara o Cruz\n* `$random [numero1] [numero2]` :arrow_right: Valor aleatorio entre los dos introducidos\n\n* (números separados por espacios)');
             }
             msg.reply({embeds: [helpCommand], components: [linkrow]});
@@ -403,11 +498,11 @@ client.on("message", async msg => {
                 if (i.values[0] === "english"){
                     languageGu[guildIDS.indexOf(msg.guild.id)] = "english"
                     await i.deferUpdate()
-                    i.editReply({ content: "Thanks for selecting english!", components: [] })
+                    i.editReply({ content: "**Thanks for selecting english!**", components: [] })
                 }else if (i.values[0] === "español"){
                     languageGu[guildIDS.indexOf(msg.guild.id)] = "español"
                     await i.deferUpdate()
-                    i.editReply({ content: "¡Gracias por seleccionar el español!", components: [] })
+                    i.editReply({ content: "**¡Gracias por seleccionar el español!**", components: [] })
                 }
             })
             break;
@@ -421,9 +516,9 @@ client.on("message", async msg => {
             }else{
                 const randomNum = Math.floor(Math.random()*(numArgs[1]-numArgs[0]+1)+(numArgs[0]));
                 if (languageGu[guildIDS.indexOf(msg.guild.id)] === "english"){
-                    msg.reply(`Random number: ${randomNum}`);
+                    msg.reply(`**Random number:** ${randomNum}`);
                 }else if (languageGu[guildIDS.indexOf(msg.guild.id)] === "español"){
-                    msg.reply(`Número aleatorio obtenido: ${randomNum}`);
+                    msg.reply(`**Número aleatorio obtenido:** ${randomNum}`);
                 }
             }
             break;
@@ -431,23 +526,23 @@ client.on("message", async msg => {
             const coin = Math.random();
             if (languageGu[guildIDS.indexOf(msg.guild.id)] === "english"){
                 if(coin <= 0.50000){
-                    msg.reply(`Coin Result: HEAD`);
+                    msg.reply(`**Coin Result:** HEAD`);
                 }else{
-                    msg.reply(`Coin Result: TAIL`);
+                    msg.reply(`**Coin Result:** TAIL`);
                 }
             }else if (languageGu[guildIDS.indexOf(msg.guild.id)] === "español"){
                 if(coin <= 0.50000){
-                    msg.reply(`Resultado de la moneda: CARA`);
+                    msg.reply(`**Resultado de la moneda:** CARA`);
                 }else{
-                    msg.reply(`Resultado de la moneda: CRUZ`);
+                    msg.reply(`**Resultado de la moneda:** CRUZ`);
                 }
             }
             break;
         case 'emporium':
             if (languageGu[guildIDS.indexOf(msg.guild.id)] === "english"){
-                msg.channel.send('The universe expands...\n\nhttps://discord.com/api/oauth2/authorize?client_id=973652617429397504&permissions=8&scope=bot');
+                msg.channel.send('**The universe expands...**\n\nhttps://discord.com/api/oauth2/authorize?client_id=973652617429397504&permissions=8&scope=bot');
             }else if (languageGu[guildIDS.indexOf(msg.guild.id)] === "español"){
-                msg.channel.send('El universo se expande...\n\nhttps://discord.com/api/oauth2/authorize?client_id=973652617429397504&permissions=8&scope=bot');
+                msg.channel.send('**El universo se expande...**\n\nhttps://discord.com/api/oauth2/authorize?client_id=973652617429397504&permissions=8&scope=bot');
             }
             break;
         default:
@@ -456,14 +551,14 @@ client.on("message", async msg => {
                 notCommand = new Discord.MessageEmbed()
                     .setColor('RED')
                     .setTimestamp()
-                    .setTitle(':x: I still don\'t have the knowledge to understand this command')
+                    .setTitle(':x: **I still don\'t have the knowledge to understand this command**')
                     .setDescription(`Try another command or write  $help  to discover my secrets`)
                     .setFooter(msg.author.username)
             }else if (languageGu[guildIDS.indexOf(msg.guild.id)] === "español"){
                 notCommand = new Discord.MessageEmbed()
                     .setColor('RED')
                     .setTimestamp()
-                    .setTitle(':x: Aún no tengo el conocimiento necesario para entender esa orden')
+                    .setTitle(':x: **Aún no tengo el conocimiento necesario para entender esa orden**')
                     .setDescription(`Prueba a usar otro comando o escribe  $help  para descubrir mis secretos`)
                     .setFooter(msg.author.username)
             }
@@ -479,8 +574,8 @@ client.on("guildMemberAdd",member => {
             newMember = new Discord.MessageEmbed()
                 .setColor('DARK_ORANGE')
                 .setTimestamp()
-                .setTitle('The server expands')
-                .setDescription(`New user: ${member.user.username} on the server: ${member.guild.name}\n Welcome!  You are the user number ${member.guild.memberCount} to arrive.`)
+                .setTitle('**The server expands**')
+                .setDescription(`**New user:** ${member.user.username} on the server: ${member.guild.name}\n **Welcome!**  You are the user number ${member.guild.memberCount} to arrive.`)
                 .setThumbnail(member.user.avatarURL())
                 .setFooter(member.user.username)
         }else if (languageGu[guildIDS.indexOf(member.guild.id)] === "español"){
@@ -488,7 +583,7 @@ client.on("guildMemberAdd",member => {
                 .setColor('DARK_ORANGE')
                 .setTimestamp()
                 .setTitle('El servidor se expande')
-                .setDescription(`Nuevo usuario: ${member.user.username} en el servidor: ${member.guild.name}\n ¡Bienvenid@!  Eres el usuario número ${member.guild.memberCount} en llegar.`)
+                .setDescription(`**Nuevo usuario:** ${member.user.username} en el servidor: ${member.guild.name}\n **¡Bienvenid@!**  Eres el usuario número ${member.guild.memberCount} en llegar.`)
                 .setThumbnail(member.user.avatarURL())
                 .setFooter(member.user.username)
         }
@@ -508,7 +603,7 @@ client.on("guildMemberRemove", (member) => {
             deleteMember = new Discord.MessageEmbed()
                 .setColor('RED')
                 .setTimestamp()
-                .setTitle('The expansion won\'t be stopped')
+                .setTitle('**The expansion won\'t be stopped**')
                 .setDescription(`Today we say goodbye on the server: ${member.guild.name} to... ${member.user.username}.`)
                 .setThumbnail(member.user.avatarURL())
                 .setFooter(member.user.username)
@@ -516,7 +611,7 @@ client.on("guildMemberRemove", (member) => {
             deleteMember = new Discord.MessageEmbed()
                 .setColor('RED')
                 .setTimestamp()
-                .setTitle('La expansión no se detendrá')
+                .setTitle('**La expansión no se detendrá**')
                 .setDescription(`Hoy decimos adiós en el servidor: ${member.guild.name} a... ${member.user.username}.`)
                 .setThumbnail(member.user.avatarURL())
                 .setFooter(member.user.username)
@@ -543,8 +638,8 @@ client.on('guildCreate', async guild => {
     }
     const introduction = new Discord.MessageEmbed()
         .setColor('DARK_ORANGE')
-        .setTitle('Prepare for the rise of a new dawn...')
-        .setDescription('My name is Emporium. Thanks for inviting me, to unleash my knowledge write `$help`\n\n Discover the unknown...\n\n Selecciona un idioma/Select a Language:\n')
+        .setTitle('**Prepare for the rise of a new dawn...**')
+        .setDescription('My name is **Emporium**. Thanks for inviting me, to unleash my knowledge write `$help`\n\n **Discover the unknown...**\n\n Selecciona un idioma/Select a Language:\n')
         .setThumbnail(client.user.avatarURL())
     guild.systemChannel.send({embeds:[introduction]});
 
@@ -575,11 +670,11 @@ client.on('guildCreate', async guild => {
         if (i.values[0] === "english"){
             languageGu[guildIDS.indexOf(guild.id)] = "english"
             await i.deferUpdate()
-            i.editReply({ content: "Thanks for selecting english!", components: [] })
+            i.editReply({ content: "**Thanks for selecting english!**", components: [] })
         }else if (i.values[0] === "español"){
             languageGu[guildIDS.indexOf(guild.id)] = "español"
             await i.deferUpdate()
-            i.editReply({ content: "¡Gracias por seleccionar el español!", components: [] })
+            i.editReply({ content: "**¡Gracias por seleccionar el español!**", components: [] })
         }
     })
 });
