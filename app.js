@@ -303,50 +303,104 @@ client.on("message", async msg => {
             break;
         case 'block':
             if (userBlock === undefined){
+                let errBlockInfo
                 if (languageGu[guildIDS.indexOf(msg.guild.id)] === "english"){
-                    msg.channel.send(`You haven't specify the ID of the user to block`);
+                    errBlockInfo = new Discord.MessageEmbed()
+                        .setColor('DARK_ORANGE')
+                        .setTitle(`You haven't specify the ID of the user to block`)
+                        .setTimestamp()
                 }else if (languageGu[guildIDS.indexOf(msg.guild.id)] === "español"){
-                    msg.channel.send(`No has especificado la ID del usuario a bloquear`);
+                    errBlockInfo = new Discord.MessageEmbed()
+                        .setColor('DARK_ORANGE')
+                        .setTitle(`No has especificado la ID del usuario a bloquear`)
+                        .setTimestamp()
                 }
+                msg.channel.send({embeds:[errBlockInfo]});
             }else{
                 if (!blockedGuID[positionBlocked].includes(userBlock)){
                     blockedGuID[positionBlocked].push(userBlock);
+                    let blockInfo
                     if (languageGu[guildIDS.indexOf(msg.guild.id)] === "english"){
-                        msg.channel.send(`My use has been blocked to the user with ID: ${userBlock}`);
+                        blockInfo = new Discord.MessageEmbed()
+                            .setColor('DARK_ORANGE')
+                            .setTitle(`**Blocked by:**  ${msg.author.username}`)
+                            .setDescription(`My use has been blocked to the user with ID: ${userBlock}`)
+                            .setTimestamp()
                     }else if (languageGu[guildIDS.indexOf(msg.guild.id)] === "español"){
-                        msg.channel.send(`Se ha bloqueado mi uso al/la usuari@ con ID: ${userBlock}`);
+                        blockInfo = new Discord.MessageEmbed()
+                            .setColor('DARK_ORANGE')
+                            .setTitle(`**Bloqueado por:**  ${msg.author.username}`)
+                            .setDescription(`Se ha bloqueado mi uso al/la usuari@ con ID: ${userBlock}`)
+                            .setTimestamp()
                     }
+                    msg.channel.send({embeds:[blockInfo]});
                 }else{
+                    let yablockInfo
                     if (languageGu[guildIDS.indexOf(msg.guild.id)] === "english"){
-                        msg.channel.send(`This user (ID: ${userBlock}) was already blocked, calm down... `);
+                        yablockInfo = new Discord.MessageEmbed()
+                            .setColor('DARK_ORANGE')
+                            .setTitle(`**Ups...**  ${msg.author.username}`)
+                            .setDescription(`This user (ID: ${userBlock}) was already blocked, calm down... `)
+                            .setTimestamp()
                     }else if (languageGu[guildIDS.indexOf(msg.guild.id)] === "español"){
-                        msg.channel.send(`Est@ usuari@ (ID: ${userBlock}) ya estaba bloquead@, se ve que no perdonas... `);
+                        yablockInfo = new Discord.MessageEmbed()
+                            .setColor('DARK_ORANGE')
+                            .setTitle(`**Ups...**  ${msg.author.username}`)
+                            .setDescription(`Est@ usuari@ (ID: ${userBlock}) ya estaba bloquead@, se ve que no perdonas... `)
+                            .setTimestamp()
                     }
+                    msg.channel.send({embeds:[yablockInfo]});
                 }
             }
             break;
         case 'unblock':
             if (userBlock === undefined){
+                let errunBlockInfo
                 if (languageGu[guildIDS.indexOf(msg.guild.id)] === "english"){
-                    msg.channel.send(`You haven't specify the ID of the user to block`);
+                    errunBlockInfo = new Discord.MessageEmbed()
+                        .setColor('DARK_ORANGE')
+                        .setTitle(`You haven't specify the ID of the user to unblock`)
+                        .setTimestamp()
                 }else if (languageGu[guildIDS.indexOf(msg.guild.id)] === "español"){
-                    msg.channel.send(`No has especificado la ID del usuario a bloquear`);
+                    errunBlockInfo = new Discord.MessageEmbed()
+                        .setColor('DARK_ORANGE')
+                        .setTitle(`No has especificado la ID del usuario a desbloquear`)
+                        .setTimestamp()
                 }
+                msg.channel.send({embeds:[errunBlockInfo]});
             }else {
                 if (blockedGuID[positionBlocked].indexOf(userBlock) === -1){
+                    let alunBlockInfo
                     if (languageGu[guildIDS.indexOf(msg.guild.id)] === "english"){
-                        msg.channel.send(`There isn\'t anyone with ID: ${userBlock} blocked on the server: ${msg.guild.name}`);
+                        alunBlockInfo = new Discord.MessageEmbed()
+                            .setColor('DARK_ORANGE')
+                            .setDescription(`There isn\'t anyone with ID: ${userBlock} blocked on the server: ${msg.guild.name}`)
+                            .setTimestamp()
                     }else if (languageGu[guildIDS.indexOf(msg.guild.id)] === "español"){
-                        msg.channel.send(`No hay nadie con ID: ${userBlock} que esté bloquead@ en este server: ${msg.guild.name}`);
+                        alunBlockInfo = new Discord.MessageEmbed()
+                            .setColor('DARK_ORANGE')
+                            .setDescription(`No hay nadie con ID: ${userBlock} que esté bloquead@ en este server: ${msg.guild.name}`)
+                            .setTimestamp()
                     }
+                    msg.channel.send({embeds:[alunBlockInfo]});
                 }else{
                     let positionUnblock = blockedGuID[positionBlocked].indexOf(userBlock);
                     blockedGuID[positionBlocked].splice(positionUnblock, 1);
+                    let unBlockInfo
                     if (languageGu[guildIDS.indexOf(msg.guild.id)] === "english"){
-                        msg.channel.send(`My use has been unblocked to the user with ID: ${userBlock} on the server: ${msg.guild.name}`);
+                        unBlockInfo = new Discord.MessageEmbed()
+                            .setColor('DARK_ORANGE')
+                            .setTitle(`**Unblocked by:**  ${msg.author.username}`)
+                            .setDescription(`My use has been unblocked to the user with ID: ${userBlock} on the server: ${msg.guild.name}`)
+                            .setTimestamp()
                     }else if (languageGu[guildIDS.indexOf(msg.guild.id)] === "español"){
-                        msg.channel.send(`Se ha desbloqueado mi uso a la persona con ID: ${userBlock} en el servidor: ${msg.guild.name}`);
+                        unBlockInfo = new Discord.MessageEmbed()
+                            .setColor('DARK_ORANGE')
+                            .setTitle(`**Desbloqueado por:**  ${msg.author.username}`)
+                            .setDescription(`Se ha desbloqueado mi uso a la persona con ID: ${userBlock} en el servidor: ${msg.guild.name}`)
+                            .setTimestamp()
                     }
+                    msg.channel.send({embeds:[unBlockInfo]});
                 }
             }
             break;
@@ -398,27 +452,48 @@ client.on("message", async msg => {
             break;
         case 'blockedusers':
             if (positionBlocked !== -1){
-                var cnt2 = blockedGuID[positionBlocked].length-1;
-                if (cnt2 >= 0){
-                    if (languageGu[guildIDS.indexOf(msg.guild.id)] === "english"){
-                        msg.channel.send('**Users blocked on the server:**\n');
-                    }else if (languageGu[guildIDS.indexOf(msg.guild.id)] === "español"){
-                        msg.channel.send('**Usuarios Bloqueados en este server:**\n');
-                    }
-                    while (cnt2 >= 0){
-                        const user = blockedGuID[positionBlocked][cnt2];
+                let usersBlocked = "";
+                var cnt3 = blockedGuID[positionBlocked].length-1;
+                if (cnt3 >= 0){
+                    while (cnt3 >= 0){
+                        const user = blockedGuID[positionBlocked][cnt3];
                         if (languageGu[guildIDS.indexOf(msg.guild.id)] === "english"){
-                            msg.channel.send(`**User blocked with ID:** (${user}) on the server: ${msg.guild.name}`);
+                            usersBlocked += `\n**User blocked with ID:** (${user}) on the server: ${msg.guild.name}`;
                         }else if (languageGu[guildIDS.indexOf(msg.guild.id)] === "español"){
-                            msg.channel.send(`**Usuario bloqueado con ID:** (${user}) en el servidor: ${msg.guild.name}`);
+                            usersBlocked += `\n**Usuario bloqueado con ID:** (${user}) en el servidor: ${msg.guild.name}`;
                         }
-                        cnt2--;
+                        cnt3--;
+                    }
+                    let blockedInfo
+                    if (languageGu[guildIDS.indexOf(msg.guild.id)] === "english") {
+                        blockedInfo = new Discord.MessageEmbed()
+                            .setColor('DARK_ORANGE')
+                            .setTitle('**List of blocked users:** ')
+                            .setDescription(`${usersBlocked}`)
+                            .setTimestamp()
+                        msg.channel.send({embeds: [blockedInfo]});
+                    }else if (languageGu[guildIDS.indexOf(msg.guild.id)] === "español") {
+                        blockedInfo = new Discord.MessageEmbed()
+                            .setColor('DARK_ORANGE')
+                            .setTitle('**Lista de usuarios bloqueados:** ')
+                            .setDescription(`${usersBlocked}`)
+                            .setTimestamp()
+                        msg.channel.send({embeds: [blockedInfo]});
                     }
                 }else{
-                    if (languageGu[guildIDS.indexOf(msg.guild.id)] === "english"){
-                        msg.channel.send(`**No users blocked on the server:** ${msg.guild.name}`);
-                    }else if (languageGu[guildIDS.indexOf(msg.guild.id)] === "español"){
-                        msg.channel.send(`**Ningún usuario bloqueado en el servidor:** ${msg.guild.name}`);
+                    let noBlockedInfo;
+                    if (languageGu[guildIDS.indexOf(msg.guild.id)] === "english") {
+                        noBlockedInfo = new Discord.MessageEmbed()
+                            .setColor('DARK_ORANGE')
+                            .setTitle('**No users blocked**')
+                            .setTimestamp()
+                        msg.channel.send({embeds: [noBlockedInfo]});
+                    } else if (languageGu[guildIDS.indexOf(msg.guild.id)] === "español") {
+                        noBlockedInfo = new Discord.MessageEmbed()
+                            .setColor('DARK_ORANGE')
+                            .setTitle('**No hay usuarios bloqueados**')
+                            .setTimestamp()
+                        msg.channel.send({embeds: [noBlockedInfo]});
                     }
                 }
             }
@@ -428,26 +503,47 @@ client.on("message", async msg => {
             break;
         case 'showmembers':
             server.members.fetch().then(members => {
-                if (languageGu[guildIDS.indexOf(msg.guild.id)] === "english"){
-                    msg.channel.send(`**Server members:** `)
-                }else if (languageGu[guildIDS.indexOf(msg.guild.id)] === "español"){
-                    msg.channel.send(`**Miembros del servidor:** `)
-                }
                 // Loop through every members
+                let infoShowMembers = "";
                 members.forEach(member =>
                 {
                     if (member.id !== client.user.id){
-                        msg.channel.send(`${cnt}. ${member.user.username}`)
+                        infoShowMembers += `${cnt}. ${member.user.username}`;
                         cnt++;
                     }
                 });
+                let showMembers;
+                if (languageGu[guildIDS.indexOf(msg.guild.id)] === "english") {
+                    showMembers = new Discord.MessageEmbed()
+                        .setColor('DARK_ORANGE')
+                        .setTitle(`**Server members:** `)
+                        .setDescription(`\n${infoShowMembers}`)
+                        .setTimestamp()
+                    msg.channel.send({embeds: [showMembers]});
+                } else if (languageGu[guildIDS.indexOf(msg.guild.id)] === "español") {
+                    showMembers = new Discord.MessageEmbed()
+                        .setColor('DARK_ORANGE')
+                        .setTitle(`**Miembros del servidor:** `)
+                        .setDescription(`\n${infoShowMembers}`)
+                        .setTimestamp()
+                    msg.channel.send({embeds: [showMembers]});
+                }
             });
             break;
         case 'kingdom':
-            if (languageGu[guildIDS.indexOf(msg.guild.id)] === "english"){
-                msg.reply(`**Conquered Worlds:** ${client.guilds.cache.size}`);
-            }else if (languageGu[guildIDS.indexOf(msg.guild.id)] === "español"){
-                msg.reply(`**Mundos conquistados:** ${client.guilds.cache.size}`);
+            let kingdomInfo;
+            if (languageGu[guildIDS.indexOf(msg.guild.id)] === "english") {
+                kingdomInfo = new Discord.MessageEmbed()
+                    .setColor('DARK_ORANGE')
+                    .setTitle(`**Conquered Worlds:** ${client.guilds.cache.size}`)
+                    .setTimestamp()
+                msg.channel.send({embeds: [kingdomInfo]});
+            } else if (languageGu[guildIDS.indexOf(msg.guild.id)] === "español") {
+                kingdomInfo = new Discord.MessageEmbed()
+                    .setColor('DARK_ORANGE')
+                    .setTitle(`**Mundos conquistados:** ${client.guilds.cache.size}`)
+                    .setTimestamp()
+                msg.channel.send({embeds: [kingdomInfo]});
             }
             break;
         case 'help':
