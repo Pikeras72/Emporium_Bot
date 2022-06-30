@@ -708,7 +708,7 @@ client.on("guildMemberRemove", (member) => {
                 .setColor('RED')
                 .setTimestamp()
                 .setTitle('**La expansión no se detendrá**')
-                .setDescription(`Hoy decimos adiós en el servidor: ${member.guild.name} a... ${member.user.username}.`)
+                .setDescription(`Hoy decimos adiós en el server: ${member.guild.name} a... ${member.user.username}.`)
                 .setThumbnail(member.user.avatarURL())
                 .setFooter(member.user.username)
         }
