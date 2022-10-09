@@ -1,4 +1,4 @@
-// TOKEN: OTczNjUyNjE3NDI5Mzk3NTA0.GgoBC7.MQ2PdgWYrr5sL4on7842tQL5RX3soO84808lPg
+// TOKEN: ""
 // INVITE LINK: https://discord.com/api/oauth2/authorize?client_id=973652617429397504&permissions=8&scope=bot
 
 //arreglar roles y mensaje embed para el comandos, arreglar numero de miembros y bots en el comando `server` y boton al entrar a un sever nuevo para mas detalles (deberas crear canales de bienvenida bla bla...), poner el tiempo q llevas unido al server al hacer $user, ampliar lenguajes
@@ -775,4 +775,4 @@ client.on('guildCreate', async guild => {
     })
 });
 
-client.login("OTczNjUyNjE3NDI5Mzk3NTA0.GgoBC7.MQ2PdgWYrr5sL4on7842tQL5RX3soO84808lPg");
+client.login("");
