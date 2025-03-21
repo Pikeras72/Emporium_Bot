@@ -1,22 +1,7 @@
 {
-  "name": "emporium-bot",
-  "version": "1.0.0",
-  "description": "Be careful about what you whish",
-  "main": "app.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "author": "Diego Ruiz Piqueras",
-  "license": "ISC",
   "dependencies": {
-    "@discordjs/opus": "^0.8.0",
-    "@discordjs/voice": "^0.9.0",
-    "discord.js": "^13.7.0",
-    "ffmpeg-static": "^5.0.0",
-    "libsodium-wrappers": "^0.7.10",
-    "opusscript": "^0.0.8",
-    "yt-search": "^2.10.3",
-    "ytdl-core": "^4.11.0",
-    "ytsearcher": "^1.2.4"
+    "@discordjs/opus": "^0.10.0",
+    "discord.js": "^14.18.0",
+    "dotenv": "^16.4.7"
   }
 }
