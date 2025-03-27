@@ -1,6 +1,9 @@
 require('dotenv').config();
 
 const { Client, GatewayIntentBits, Partials, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, SelectMenuBuilder, PermissionsBitField } = require("discord.js");
+const { InferenceClient } = require('@huggingface/inference');
+
+const HUGGINGFACE_API_KEY = process.env.HF_API_TOKEN;
 
 const client = new Client({
     intents: [
@@ -54,7 +57,35 @@ client.on("messageCreate", async msg => {
         command = 'language'
     }
 
-    switch (command){
+    if (msg.content.startsWith('$prompt ') && command != 'language') {
+        const prompt = msg.content.replace('$prompt ', '');
+        const startTime = Date.now();
+        try {
+            const sentMessage = await msg.reply('Analizando...');
+            const client = new InferenceClient(HUGGINGFACE_API_KEY);
+            const chatCompletion = await client.chatCompletion({
+                provider: "fireworks-ai",  // Aquí pones el proveedor si lo necesitas
+                model: "deepseek-ai/DeepSeek-V3-0324",  // Aquí pones el modelo que desees usar
+                messages: [
+                    {
+                        role: "user",
+                        content: prompt, // El mensaje del usuario
+                    },
+                ],
+                max_tokens: 500, // Limita la longitud de la respuesta si lo deseas
+            });
+            const botResponse = chatCompletion.choices[0].message.content || "No pude obtener una respuesta.";
+            const endTime = Date.now();
+            const latency = endTime - startTime;
+            await sentMessage.edit(`RESPUESTA DEL MODELO EN: **${latency}ms**\n${botResponse}`);
+            
+        } catch (error) {
+            console.error('Error al obtener respuesta del modelo:', error);
+            msg.channel.send('Hubo un error al conectarse con la API de Hugging Face.');
+        }
+    }
+    else{
+        switch (command){
         case 'hola': case 'hello':
             if (msg.member.permissions.has("ADMINISTRATOR")){ //permiso del admin
                 if (languageGu[guildIDS.indexOf(msg.guild.id)] === "english"){
@@ -661,6 +692,7 @@ client.on("messageCreate", async msg => {
                     .setFooter({ text: msg.author.username });
             }
             msg.reply({ embeds: [notCommand] });
+        }
     }
 });
 
