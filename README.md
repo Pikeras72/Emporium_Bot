@@ -1,5 +1,5 @@
 # Emporium_Bot
 
-Be careful about what you wish...
+Homemade Discord bot. Yay!😁🙌
 
-(Token was reset XD)
+Be careful about what you wish... 🕳️
