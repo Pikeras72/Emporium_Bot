@@ -2,12 +2,19 @@ require('dotenv').config();
 
 const { Client, GatewayIntentBits, Partials, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, SelectMenuBuilder, PermissionsBitField } = require("discord.js");
 const { InferenceClient } = require('@huggingface/inference');
+const {joinVoiceChannel, getVoiceConnection, createAudioPlayer, createAudioResource, AudioPlayerStatus} = require('@discordjs/voice');
+const fs = require('fs');
+const prism = require('prism-media');
+const wav = require('wav');
+const wavDecoder = require('wav-decoder');
+const ytdl = require('ytdl-core');
 
 const HUGGINGFACE_API_KEY = process.env.HF_API_TOKEN;
 
 const client = new Client({
     intents: [
         GatewayIntentBits.Guilds,
+        GatewayIntentBits.GuildVoiceStates,
         GatewayIntentBits.GuildMessages,
         GatewayIntentBits.MessageContent,
         GatewayIntentBits.GuildMembers
@@ -20,6 +27,8 @@ const blockedGuID = [];
 const languageGu = [];
 const guildIDS = [];
 const users = [];
+const player = createAudioPlayer();  // 🔹 Creamos un único reproductor global para que no se cierre
+
 
 client.once("ready", () => {
     console.log(client.user.tag + " activated");
@@ -696,6 +705,212 @@ client.on("messageCreate", async msg => {
     }
 });
 
+client.on('voiceStateUpdate', async (oldState, newState) => {
+
+    // Detectar cuando un usuario se une a un canal de voz
+    if (!oldState.channel && newState.channel && !newState.member.user.bot) {
+        const voiceChannel = newState.channel;
+        const existingConnection = getVoiceConnection(voiceChannel.guild.id);
+
+        if (existingConnection) return; // Evita múltiples conexiones
+
+        try {
+            const connection = joinVoiceChannel({
+                channelId: voiceChannel.id,
+                guildId: voiceChannel.guild.id,
+                adapterCreator: voiceChannel.guild.voiceAdapterCreator
+            });
+
+            console.log(`🎧 El bot está escuchando en: ${voiceChannel.name}`);
+            listenToAudio(connection);
+        } catch (error) {
+            console.error("❌ Error al unirse al canal de voz:", error);
+        }
+    }
+
+    // Detectar cuando un canal de voz se queda vacío
+    if (oldState.channel) {
+        const voiceChannel = oldState.channel;
+        const connection = getVoiceConnection(voiceChannel.guild.id);
+
+        // Si el bot está en este canal y está vacío (sin usuarios que NO sean bots)
+        if (connection && voiceChannel.members.filter(member => !member.user.bot).size === 0) {
+            connection.destroy(); // Desconecta el bot
+            console.log(`🚪 El bot salió del canal ${voiceChannel.name} porque quedó vacío.`);
+        }
+    }
+});
+
+// Función para escuchar el audio del canal de voz
+function listenToAudio(connection) {
+    const receiver = connection.receiver;
+    const activeStreams = new Map();
+    const voiceChannelId = connection.joinConfig.channelId; // ID del canal de voz
+
+    receiver.speaking.on('start', userId => {
+        if (activeStreams.has(userId)) return;
+
+        console.log(`🎤 Capturando audio de usuario: ${userId}`);
+
+        const audioStream = receiver.subscribe(userId, { end: 'silence' });
+
+        const fileName = `audios/audio_${userId}_${Date.now()}.wav`;
+
+        // Convertir OPUS a PCM correctamente
+        const opusDecoder = new prism.opus.Decoder({ rate: 48000, channels: 2, frameSize: 960 });
+
+        // Crear un escritor de WAV para empaquetar el audio PCM en un formato válido
+        const wavWriter = new wav.FileWriter(fileName, {
+            sampleRate: 48000,
+            channels: 2,
+            bitDepth: 16
+        });
+
+        // Procesar y guardar el audio correctamente
+        audioStream.pipe(opusDecoder).pipe(wavWriter);
+
+        activeStreams.set(userId, { audioStream, wavWriter, fileName });
+
+        console.log(`🟢 Grabando... (${userId})`);
+
+        audioStream.on('close', () => {
+            console.log(`⏹️ Finalizando grabación de ${userId}`);
+            if (wavWriter) {
+                wavWriter.end();  // Asegurar que se cierre el archivo
+            }
+            activeStreams.delete(userId);
+
+            // Verificar si el archivo se creó correctamente
+            setTimeout(() => {
+                fs.stat(fileName, async (err, stats) => {
+                    if (err) {
+                        console.error(`❌ Error al guardar el archivo: ${err.message}`);
+                    } else if (stats.size > 0) {
+                        console.log(`📂 Audio guardado correctamente: ${fileName} (${stats.size} bytes)`);
+                        // Obtener el canal de voz desde el cliente
+                        const voiceChannel = client.channels.cache.get(voiceChannelId);
+
+                        if (voiceChannel) {
+                            await transcribeAudioToText(fileName, voiceChannel);
+                        } else {
+                            console.error("⚠️ No se pudo encontrar el canal de voz.");
+                        }
+                    } else {
+                        console.error(`⚠️ Archivo vacío, no se guardó correctamente: ${fileName}`);
+                        fs.unlinkSync(fileName); // Borrar archivo vacío
+                    }
+                });
+            }, 1000);
+        });
+
+        audioStream.on('error', err => {
+            console.error(`❌ Error en el stream de ${userId}:`, err);
+            if (wavWriter) {
+                wavWriter.end();
+            }
+            activeStreams.delete(userId);
+        });
+    });
+
+    receiver.speaking.on('end', userId => {
+        if (activeStreams.has(userId)) {
+            console.log(`⏹️ Usuario ${userId} dejó de hablar, guardando audio...`);
+            const { audioStream, wavWriter } = activeStreams.get(userId);
+            audioStream.destroy();
+            wavWriter.end();  // Asegurar que se cierre correctamente
+            activeStreams.delete(userId);
+        }
+    });
+}
+
+async function transcribeAudioToText(audioFilePath, voiceChannel) {
+    const startTime = Date.now();
+    const audioDuration = await getAudioDuration(audioFilePath);
+
+    // Si el audio dura menos de 1.25 segundos, eliminamos el archivo y no lo procesamos
+    if (audioDuration < 1.25) {
+        console.log(`⚠️ Audio demasiado corto (dura ${audioDuration} segundos). Eliminando archivo: ${audioFilePath}`);
+        fs.unlinkSync(audioFilePath);  // Eliminar el archivo
+        return;  // No continuamos con la transcripción
+    }
+
+    try {
+        const client = new InferenceClient(HUGGINGFACE_API_KEY)
+        const audioData = fs.readFileSync(audioFilePath);
+
+        const response = await client.automaticSpeechRecognition({
+            data: audioData,              // El audio en forma de buffer
+            model: 'openai/whisper-large-v3',  // El modelo Whisper de HF
+            provider: 'hf-inference'      // Asegurarse de usar el proveedor correcto
+        });
+        
+        // Verificar la respuesta y mostrar el texto transcrito
+        if (response && response.text) {
+            console.log(`📝 Transcripción del audio: ${response.text}`);
+            // 🔹 Procesar la transcripción para detectar comandos de música
+            if (voiceChannel) {
+                await processSpeechCommand(response.text, voiceChannel);
+            } else {
+                console.log("⚠️ No se detectó un canal de voz válido.");
+            }
+        } else {
+            console.log('⚠️ No se pudo transcribir el audio.');
+        }
+
+        // Borrar el archivo de audio después de procesarlo
+        fs.unlinkSync(audioFilePath);
+        console.log(`🗑️ Archivo de audio eliminado: ${audioFilePath}`);
+
+        const endTime = Date.now();
+        const latency = endTime - startTime;
+        console.log(`⌛ Respuesta del modelo en: ${latency}ms`);
+        
+    } catch (error) {
+        console.error(`❌ Error al transcribir el audio:`, error);
+    }
+}
+
+async function getAudioDuration(audioFilePath) {
+    try {
+        const buffer = fs.readFileSync(audioFilePath);
+        const audioData = await wavDecoder.decode(buffer);
+
+        // La duración en segundos es igual al número de muestras dividido por la tasa de muestreo
+        const durationInSeconds = audioData.channelData[0].length / audioData.sampleRate;
+
+        return durationInSeconds;
+    } catch (error) {
+        console.error('Error al obtener la duración del archivo WAV:', error);
+        return 0;  // Si hay un error, asumimos que la duración es 0
+    }
+}
+
+async function processSpeechCommand(text, voiceChannel) {
+    // Limpiar el texto para eliminar posibles espacios al principio o final
+    const cleanedText = text.replace(/[.,]/g, '').trim();
+    console.log(`Texto limpio: "${cleanedText}"`);
+
+    const regex = /^emporium (?:reproduce|pon|ponme) (.+?)(?: de (.+))?\.?$/i;
+    const match = cleanedText.match(regex);
+
+    if (match) {
+        const songName = match[1]?.trim();  // Canción
+        const artistName = match[2]?.trim() || "Desconocido"; // Artista (opcional)
+
+        console.log(`🎶 Comando detectado: reproduce`);
+        console.log(`Canción: ${songName}`);
+        console.log(`Artista: ${artistName}`);
+
+        await playSongInVoiceChannel(songName, artistName, voiceChannel);
+    } else {
+        console.log("⚠️ No se detectó un comando válido.");
+    }
+}
+
+async function playSongInVoiceChannel(songName, artistName, voiceChannel) {
+    // RELLENAR
+}
+
 client.on("guildMemberAdd",member => {
     if (!member.user.bot) {
         users.push(member.user.id);
@@ -829,4 +1044,5 @@ client.on('guildCreate', async guild => {
     })
     
 });
+
 client.login(process.env.DISCORD_TOKEN);
