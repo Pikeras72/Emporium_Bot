@@ -2,14 +2,17 @@ require('dotenv').config();
 
 const { Client, GatewayIntentBits, Partials, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, SelectMenuBuilder, PermissionsBitField } = require("discord.js");
 const { InferenceClient } = require('@huggingface/inference');
-const {joinVoiceChannel, getVoiceConnection, createAudioPlayer, createAudioResource, AudioPlayerStatus} = require('@discordjs/voice');
+const {joinVoiceChannel, getVoiceConnection, createAudioPlayer, createAudioResource, AudioPlayerStatus, StreamType } = require('@discordjs/voice');
 const fs = require('fs');
 const prism = require('prism-media');
 const wav = require('wav');
 const wavDecoder = require('wav-decoder');
-const ytdl = require('ytdl-core');
+const playdl = require("play-dl");
+const { exec } = require("child_process");
+
 
 const HUGGINGFACE_API_KEY = process.env.HF_API_TOKEN;
+const clientHF = new InferenceClient(HUGGINGFACE_API_KEY);
 
 const client = new Client({
     intents: [
@@ -27,7 +30,6 @@ const blockedGuID = [];
 const languageGu = [];
 const guildIDS = [];
 const users = [];
-const player = createAudioPlayer();  // 🔹 Creamos un único reproductor global para que no se cierre
 
 
 client.once("ready", () => {
@@ -71,8 +73,7 @@ client.on("messageCreate", async msg => {
         const startTime = Date.now();
         try {
             const sentMessage = await msg.reply('Analizando...');
-            const client = new InferenceClient(HUGGINGFACE_API_KEY);
-            const chatCompletion = await client.chatCompletion({
+            const chatCompletion = await clientHF.chatCompletion({
                 provider: "fireworks-ai",  // Aquí pones el proveedor si lo necesitas
                 model: "deepseek-ai/DeepSeek-V3-0324",  // Aquí pones el modelo que desees usar
                 messages: [
@@ -96,7 +97,7 @@ client.on("messageCreate", async msg => {
     else{
         switch (command){
         case 'hola': case 'hello':
-            if (msg.member.permissions.has("ADMINISTRATOR")){ //permiso del admin
+            if (msg.member.permissions.has(PermissionsBitField.Flags.Administrator)) { //permiso del admin
                 if (languageGu[guildIDS.indexOf(msg.guild.id)] === "english"){
                     msg.channel.send("It seems like an admin is near, stay aware...");
                 }else if (languageGu[guildIDS.indexOf(msg.guild.id)] === "español"){
@@ -754,7 +755,7 @@ function listenToAudio(connection) {
 
         const audioStream = receiver.subscribe(userId, { end: 'silence' });
 
-        const fileName = `audios/audio_${userId}_${Date.now()}.wav`;
+        const fileName = `audios_temp/audio_${userId}_${Date.now()}.wav`;
 
         // Convertir OPUS a PCM correctamente
         const opusDecoder = new prism.opus.Decoder({ rate: 48000, channels: 2, frameSize: 960 });
@@ -835,10 +836,9 @@ async function transcribeAudioToText(audioFilePath, voiceChannel) {
     }
 
     try {
-        const client = new InferenceClient(HUGGINGFACE_API_KEY)
         const audioData = fs.readFileSync(audioFilePath);
 
-        const response = await client.automaticSpeechRecognition({
+        const response = await clientHF.automaticSpeechRecognition({
             data: audioData,              // El audio en forma de buffer
             model: 'openai/whisper-large-v3',  // El modelo Whisper de HF
             provider: 'hf-inference'      // Asegurarse de usar el proveedor correcto
@@ -890,7 +890,7 @@ async function processSpeechCommand(text, voiceChannel) {
     const cleanedText = text.replace(/[.,]/g, '').trim();
     console.log(`Texto limpio: "${cleanedText}"`);
 
-    const regex = /^emporium (?:reproduce|pon|ponme) (.+?)(?: de (.+))?\.?$/i;
+    const regex = /^emporium (?:reproduce|pon|ponme|reproduceme|pincha) (.+?)(?: de (.+))?\.?$/i;
     const match = cleanedText.match(regex);
 
     if (match) {
@@ -907,8 +907,76 @@ async function processSpeechCommand(text, voiceChannel) {
     }
 }
 
-async function playSongInVoiceChannel(songName, artistName, voiceChannel) {
-    // RELLENAR
+async function playSongInVoiceChannel(songName, artistName, voiceChannel) { 
+    try {
+        // Construir la consulta de búsqueda para YouTube
+        const searchQuery = `${songName} ${artistName ? artistName : ''}`;
+        
+        // Buscar el video de YouTube usando play-dl
+        const searchResults = await playdl.search(searchQuery, { limit: 1 });
+        if (searchResults.length === 0) {
+            console.log("❌ No se encontró ningún video para la canción.");
+            return;
+        }
+
+        // Obtener la URL del primer video encontrado
+        const videoUrl = searchResults[0].url;
+
+        const outputPath = `songs_temp/song_${songName}_${Date.now()}.mp3`;
+
+        await new Promise((resolve, reject) => {
+            exec(`yt-dlp -x --audio-format mp3 -o "${outputPath}" ${videoUrl}`, (error, stdout, stderr) => {
+                if (error) {
+                    console.error("Error al descargar el audio:", error);
+                    reject(error);
+                } else {
+                    console.log("Descarga completada.");
+                    resolve();
+                }
+            });
+        });
+
+        // Unirnos al canal de voz si no estamos ya conectados
+        const connection = getVoiceConnection(voiceChannel.guild.id);
+        if (!connection) {
+            connection = joinVoiceChannel({
+                channelId: voiceChannel.id,
+                guildId: voiceChannel.guild.id,
+                adapterCreator: voiceChannel.guild.voiceAdapterCreator
+            });
+        }
+
+        console.log("🔍 Estado de la conexión:", connection.state.status);
+
+        console.log("🎼 Creando el reproductor...");
+        const player = createAudioPlayer();
+        const audioResource = createAudioResource(outputPath);
+        player.play(audioResource);
+        connection.subscribe(player);
+        
+        player.on(AudioPlayerStatus.Playing, () => {
+            console.log("✅ ¡El bot está reproduciendo el audio!");
+        });
+
+        player.on(AudioPlayerStatus.Idle, () => {
+            console.log("🎵 Canción terminada. Esperando nuevos comandos...");
+        });
+
+        // 🔹 Registrar cambios de estado del player
+        player.on('stateChange', (oldState, newState) => {
+            console.log(`🔄 Cambio de estado: ${oldState.status} -> ${newState.status}`);
+        });
+
+        // Manejo de errores en el reproductor de audio
+        player.on('error', error => {
+            console.error(`❌ Error en el reproductor de audio:`, error);
+        });
+
+        console.log(`🎶 Reproduciendo canción: ${videoUrl}`);
+
+    } catch (error) {
+        console.error('❌ Error al reproducir la canción:', error);
+    }
 }
 
 client.on("guildMemberAdd",member => {
