@@ -1,3 +1,5 @@
+// Añadir que si piden una canción, se mire si la longuitud del video es de más de 10 mins o no, si lo es, coger el segundo link
+
 require('dotenv').config();
 
 const { Client, GatewayIntentBits, Partials, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, SelectMenuBuilder, PermissionsBitField } = require("discord.js");
@@ -9,10 +11,9 @@ const wav = require('wav');
 const wavDecoder = require('wav-decoder');
 const playdl = require("play-dl");
 const { exec } = require("child_process");
+const path = require('path');
 
-
-const HUGGINGFACE_API_KEY = process.env.HF_API_TOKEN;
-const clientHF = new InferenceClient(HUGGINGFACE_API_KEY);
+const clientHF = new InferenceClient(process.env.HF_SEC_API_TOKEN);
 
 const client = new Client({
     intents: [
@@ -744,6 +745,9 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
 
 // Función para escuchar el audio del canal de voz
 function listenToAudio(connection) {
+    cleanOldFiles('./audios_temp');
+    cleanOldFiles('./songs_temp');
+    
     const receiver = connection.receiver;
     const activeStreams = new Map();
     const voiceChannelId = connection.joinConfig.channelId; // ID del canal de voz
@@ -774,12 +778,14 @@ function listenToAudio(connection) {
 
         console.log(`🟢 Grabando... (${userId})`);
 
-        audioStream.on('close', () => {
+        audioStream.on('close', async () => {
             console.log(`⏹️ Finalizando grabación de ${userId}`);
             if (wavWriter) {
                 wavWriter.end();  // Asegurar que se cierre el archivo
             }
             activeStreams.delete(userId);
+
+            await new Promise(resolve => setTimeout(resolve, 1000));
 
             // Verificar si el archivo se creó correctamente
             setTimeout(() => {
@@ -825,6 +831,19 @@ function listenToAudio(connection) {
 }
 
 async function transcribeAudioToText(audioFilePath, voiceChannel) {
+    // Verificar que el archivo no esté vacío
+    try {
+        const stats = await fs.promises.stat(audioFilePath);
+        if (stats.size === 0) {
+            console.warn(`⚠️ Archivo vacío, omitiendo transcripción: ${audioFilePath}`);
+            fs.unlinkSync(audioFilePath);
+            return;
+        }
+    } catch (err) {
+        console.error(`❌ Error al verificar el archivo: ${err.message}`);
+        return;
+    }
+
     const startTime = Date.now();
     const audioDuration = await getAudioDuration(audioFilePath);
 
@@ -867,6 +886,10 @@ async function transcribeAudioToText(audioFilePath, voiceChannel) {
         
     } catch (error) {
         console.error(`❌ Error al transcribir el audio:`, error);
+        if (fs.existsSync(audioFilePath)) {
+            fs.unlinkSync(audioFilePath);
+            console.log(`🗑️ Archivo eliminado tras error: ${audioFilePath}`);
+        }
     }
 }
 
@@ -909,6 +932,9 @@ async function processSpeechCommand(text, voiceChannel) {
 
 async function playSongInVoiceChannel(songName, artistName, voiceChannel) { 
     try {
+        //Limpiar las canciones existentes
+        cleanOldFiles('./songs_temp');
+
         // Construir la consulta de búsqueda para YouTube
         const searchQuery = `${songName} ${artistName ? artistName : ''}`;
         
@@ -960,6 +986,8 @@ async function playSongInVoiceChannel(songName, artistName, voiceChannel) {
 
         player.on(AudioPlayerStatus.Idle, () => {
             console.log("🎵 Canción terminada. Esperando nuevos comandos...");
+            fs.unlinkSync(outputPath);
+            console.log(`🗑️ Archivo de audio eliminado: ${outputPath}`);
         });
 
         // 🔹 Registrar cambios de estado del player
@@ -970,13 +998,33 @@ async function playSongInVoiceChannel(songName, artistName, voiceChannel) {
         // Manejo de errores en el reproductor de audio
         player.on('error', error => {
             console.error(`❌ Error en el reproductor de audio:`, error);
+            fs.unlinkSync(outputPath);
         });
 
         console.log(`🎶 Reproduciendo canción: ${videoUrl}`);
 
     } catch (error) {
         console.error('❌ Error al reproducir la canción:', error);
+        fs.unlinkSync(outputPath);
     }
+}
+
+function cleanOldFiles(dir) {
+    const maxAge = 5 * 60 * 1000; // 5 minutos
+
+    fs.readdir(dir, (err, files) => {
+        if (err) return console.error("❌ Error leyendo audios_temp:", err);
+        files.forEach(file => {
+            const filePath = path.join(dir, file);
+            fs.stat(filePath, (err, stats) => {
+                if (!err && (Date.now() - stats.mtimeMs > maxAge)) {
+                    fs.unlink(filePath, err => {
+                        if (!err) console.log(`🧹 Archivo eliminado por antigüedad: ${filePath}`);
+                    });
+                }
+            });
+        });
+    });
 }
 
 client.on("guildMemberAdd",member => {
