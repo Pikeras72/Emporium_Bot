@@ -10,8 +10,9 @@ const prism = require('prism-media');
 const wav = require('wav');
 const wavDecoder = require('wav-decoder');
 const playdl = require("play-dl");
-const { exec } = require("child_process");
+const { execFile } = require('child_process');
 const path = require('path');
+const { error } = require('console');
 
 const clientHF = new InferenceClient(process.env.HF_SEC_API_TOKEN);
 
@@ -855,25 +856,12 @@ async function transcribeAudioToText(audioFilePath, voiceChannel) {
     }
 
     try {
-        const audioData = fs.readFileSync(audioFilePath);
-
-        const response = await clientHF.automaticSpeechRecognition({
-            data: audioData,              // El audio en forma de buffer
-            model: 'openai/whisper-large-v3',  // El modelo Whisper de HF
-            provider: 'hf-inference'      // Asegurarse de usar el proveedor correcto
-        });
-        
-        // Verificar la respuesta y mostrar el texto transcrito
-        if (response && response.text) {
-            console.log(`📝 Transcripción del audio: ${response.text}`);
-            // 🔹 Procesar la transcripción para detectar comandos de música
-            if (voiceChannel) {
-                await processSpeechCommand(response.text, voiceChannel);
-            } else {
-                console.log("⚠️ No se detectó un canal de voz válido.");
-            }
+        const transcripcion = await transcribeAudioLocally(audioFilePath);
+        console.log(`📝 Transcripción del audio: ${transcripcion}`);
+        if (voiceChannel) {
+            await processSpeechCommand(transcripcion, voiceChannel);
         } else {
-            console.log('⚠️ No se pudo transcribir el audio.');
+            console.log("⚠️ No se detectó un canal de voz válido.");
         }
 
         // Borrar el archivo de audio después de procesarlo
@@ -891,6 +879,27 @@ async function transcribeAudioToText(audioFilePath, voiceChannel) {
             console.log(`🗑️ Archivo eliminado tras error: ${audioFilePath}`);
         }
     }
+}
+
+async function transcribeAudioLocally(audioFilePath) {
+    return new Promise((resolve, reject) => {
+        execFile('python', [path.join(__dirname, 'transcribe.py'), audioFilePath], (error, stdout, stderr) => {
+            console.log("⏳ Python output:", stdout);
+            console.log("⚠️ Python stderr:", stderr);
+        
+            if (error) {
+                console.error('❌ Error ejecutando Python:', error);
+                return reject(error);
+            }
+            try {
+                const result = JSON.parse(stdout);
+                resolve(result.text);
+            } catch (parseError) {
+                console.error('❌ Error al parsear la respuesta:', parseError);
+                reject(parseError);
+            }
+        });
+    });
 }
 
 async function getAudioDuration(audioFilePath) {
@@ -913,7 +922,7 @@ async function processSpeechCommand(text, voiceChannel) {
     const cleanedText = text.replace(/[.,]/g, '').trim();
     console.log(`Texto limpio: "${cleanedText}"`);
 
-    const regex = /^emporium (?:reproduce|pon|ponme|reproduceme|pincha) (.+?)(?: de (.+))?\.?$/i;
+    const regex = /^jarvis (?:reproduce|pon|ponme|reproduceme|pincha) (.+?)(?: de (.+))?\.?$/i;
     const match = cleanedText.match(regex);
 
     if (match) {
@@ -950,8 +959,42 @@ async function playSongInVoiceChannel(songName, artistName, voiceChannel) {
 
         const outputPath = `songs_temp/song_${songName}_${Date.now()}.mp3`;
 
+        // Si ya se está reproduciendo una canción, detener y eliminar la anterior
+        const currentPlayer = getVoiceConnection(voiceChannel.guild.id)?.state?.player;
+        if (currentPlayer) {
+            console.log("🔄 Deteniendo y eliminando la canción anterior...");
+            currentPlayer.stop();
+        
+            // Asegúrate de que `currentPlayer.state.resource` y `metadata` existan
+            const previousAudioPath = currentPlayer.state.resource?.metadata?.filePath;
+            if (previousAudioPath) {
+                console.log(`Ruta del archivo anterior: ${previousAudioPath}`);
+            
+                if (fs.existsSync(previousAudioPath)) {
+                    try {
+                        fs.unlinkSync(previousAudioPath);
+                        console.log(`🗑️ Archivo anterior eliminado: ${previousAudioPath}`);
+                    } catch (error) {
+                        console.error("Error al eliminar el archivo:", error);
+                    }
+                } else {
+                    console.log("El archivo anterior no existe o no se encuentra en la ruta especificada.");
+                }
+            } else {
+                console.log("No se encontró la ruta del archivo anterior en la metadata del recurso.");
+            }
+        } else {
+            console.log("No hay un reproductor activo en la conexión de voz.");
+        }
+
         await new Promise((resolve, reject) => {
-            exec(`yt-dlp -x --audio-format mp3 -o "${outputPath}" ${videoUrl}`, (error, stdout, stderr) => {
+            execFile('yt-dlp', [
+                '-x',
+                '--audio-format', 'mp3',
+                '-o', outputPath,
+                videoUrl
+            ], (error, stdout, stderr) => {
+            
                 if (error) {
                     console.error("Error al descargar el audio:", error);
                     reject(error);
@@ -1005,22 +1048,20 @@ async function playSongInVoiceChannel(songName, artistName, voiceChannel) {
 
     } catch (error) {
         console.error('❌ Error al reproducir la canción:', error);
-        fs.unlinkSync(outputPath);
     }
 }
 
 function cleanOldFiles(dir) {
-    const maxAge = 5 * 60 * 1000; // 5 minutos
-
     fs.readdir(dir, (err, files) => {
         if (err) return console.error("❌ Error leyendo audios_temp:", err);
+        
         files.forEach(file => {
             const filePath = path.join(dir, file);
-            fs.stat(filePath, (err, stats) => {
-                if (!err && (Date.now() - stats.mtimeMs > maxAge)) {
-                    fs.unlink(filePath, err => {
-                        if (!err) console.log(`🧹 Archivo eliminado por antigüedad: ${filePath}`);
-                    });
+            fs.unlink(filePath, (err) => {
+                if (!err) {
+                    console.log(`🧹 Archivo eliminado: ${filePath}`);
+                } else {
+                    console.error(`❌ Error eliminando archivo: ${filePath} por: ${err}`);
                 }
             });
         });
