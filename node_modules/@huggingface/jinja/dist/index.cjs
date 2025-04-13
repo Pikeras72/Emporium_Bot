@@ -90,6 +90,7 @@ var TOKEN_TYPES = Object.freeze({
   Is: "Is",
   NotIn: "NotIn",
   Else: "Else",
+  EndSet: "EndSet",
   EndIf: "EndIf",
   ElseIf: "ElseIf",
   EndFor: "EndFor",
@@ -106,6 +107,7 @@ var KEYWORDS = Object.freeze({
   is: TOKEN_TYPES.Is,
   if: TOKEN_TYPES.If,
   else: TOKEN_TYPES.Else,
+  endset: TOKEN_TYPES.EndSet,
   endif: TOKEN_TYPES.EndIf,
   elif: TOKEN_TYPES.ElseIf,
   endfor: TOKEN_TYPES.EndFor,
@@ -342,10 +344,11 @@ var For = class extends Statement {
   type = "For";
 };
 var SetStatement = class extends Statement {
-  constructor(assignee, value) {
+  constructor(assignee, value, body) {
     super();
     this.assignee = assignee;
     this.value = value;
+    this.body = body;
   }
   type = "Set";
 };
@@ -553,10 +556,19 @@ function parse(tokens) {
     const left = parseExpression();
     if (is(TOKEN_TYPES.Equals)) {
       ++current;
-      const value = parseSetStatement();
-      return new SetStatement(left, value);
+      const value = parseExpression();
+      return new SetStatement(left, value, []);
+    } else {
+      const body = [];
+      expect(TOKEN_TYPES.CloseStatement, "Expected %} token");
+      while (!(tokens[current]?.type === TOKEN_TYPES.OpenStatement && tokens[current + 1]?.type === TOKEN_TYPES.EndSet)) {
+        const another = parseAny();
+        body.push(another);
+      }
+      expect(TOKEN_TYPES.OpenStatement, "Expected {% token");
+      expect(TOKEN_TYPES.EndSet, "Expected endset token");
+      return new SetStatement(left, null, body);
     }
-    return left;
   }
   function parseIfStatement() {
     const test = parseExpression();
@@ -1363,6 +1375,8 @@ var Interpreter = class {
             );
           case "join":
             return new StringValue(operand.value.map((x) => x.value).join(""));
+          case "string":
+            return new StringValue(toJSON(operand));
           default:
             throw new Error(`Unknown ArrayValue filter: ${filter.value}`);
         }
@@ -1630,7 +1644,7 @@ var Interpreter = class {
     return value instanceof RuntimeValue ? value : new UndefinedValue();
   }
   evaluateSet(node, environment) {
-    const rhs = this.evaluate(node.value, environment);
+    const rhs = node.value ? this.evaluate(node.value, environment) : this.evaluateBlock(node.body, environment);
     if (node.assignee.type === "Identifier") {
       const variableName = node.assignee.value;
       environment.setVariable(variableName, rhs);

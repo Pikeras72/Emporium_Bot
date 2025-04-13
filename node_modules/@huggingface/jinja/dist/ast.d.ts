@@ -34,9 +34,10 @@ export declare class For extends Statement {
 }
 export declare class SetStatement extends Statement {
     assignee: Expression;
-    value: Expression;
+    value: Expression | null;
+    body: Statement[];
     type: string;
-    constructor(assignee: Expression, value: Expression);
+    constructor(assignee: Expression, value: Expression | null, body: Statement[]);
 }
 export declare class Macro extends Statement {
     name: Identifier;
