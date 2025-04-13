@@ -35,6 +35,7 @@ export declare const TOKEN_TYPES: Readonly<{
     Is: "Is";
     NotIn: "NotIn";
     Else: "Else";
+    EndSet: "EndSet";
     EndIf: "EndIf";
     ElseIf: "ElseIf";
     EndFor: "EndFor";

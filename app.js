@@ -14,7 +14,7 @@ const { execFile } = require('child_process');
 const path = require('path');
 const { error } = require('console');
 
-const clientHF = new InferenceClient(process.env.HF_SEC_API_TOKEN);
+const clientHF = new InferenceClient(process.env.HF_API_TOKEN);
 
 const client = new Client({
     intents: [
@@ -921,19 +921,34 @@ async function processSpeechCommand(text, voiceChannel) {
     // Limpiar el texto para eliminar posibles espacios al principio o final
     const cleanedText = text.replace(/[.,]/g, '').trim();
     console.log(`Texto limpio: "${cleanedText}"`);
+    const regex_play = /^emporium[,]?\s*(?:reproduce|pon|ponme|reproduceme|pincha)\s+(.+?)(?:\s+de\s+(.+?))?\.?$/i;
+    const regex_stop = /^emporium[,]?\s*(?:para|det[eé]n|detente|calla)\s+(?:la m[uú]sica|la canci[oó]n|la reproducci[oó]n|el sonido)\.?$/i;
+    const match_play = cleanedText.match(regex_play);
+    const match_stop = cleanedText.match(regex_stop);
 
-    const regex = /^jarvis (?:reproduce|pon|ponme|reproduceme|pincha) (.+?)(?: de (.+))?\.?$/i;
-    const match = cleanedText.match(regex);
-
-    if (match) {
-        const songName = match[1]?.trim();  // Canción
-        const artistName = match[2]?.trim() || "Desconocido"; // Artista (opcional)
+    if (match_play) {
+        const songName = match_play[1]?.trim();  // Canción
+        const artistName = match_play[2]?.trim() || "Desconocido"; // Artista (opcional)
 
         console.log(`🎶 Comando detectado: reproduce`);
         console.log(`Canción: ${songName}`);
         console.log(`Artista: ${artistName}`);
 
         await playSongInVoiceChannel(songName, artistName, voiceChannel);
+    } else if (match_stop) {
+        console.log("🛑 Comando detectado: detener música");
+        const connection = getVoiceConnection(voiceChannel.guild.id);
+        if (connection) {
+            const subscription = connection.state.subscription;
+            if (subscription && subscription.player) {
+                subscription.player.stop();
+                console.log("⏹️ Reproductor detenido. El bot sigue conectado.");
+            } else {
+                console.log("⚠️ No hay reproductor activo para detener.");
+            }
+        } else {
+            console.log("⚠️ No hay conexión activa para detener la música.");
+        }
     } else {
         console.log("⚠️ No se detectó un comando válido.");
     }
@@ -1029,8 +1044,14 @@ async function playSongInVoiceChannel(songName, artistName, voiceChannel) {
 
         player.on(AudioPlayerStatus.Idle, () => {
             console.log("🎵 Canción terminada. Esperando nuevos comandos...");
-            fs.unlinkSync(outputPath);
-            console.log(`🗑️ Archivo de audio eliminado: ${outputPath}`);
+            setTimeout(() => {
+                try {
+                    fs.unlinkSync(outputPath);
+                    console.log(`🗑️ Archivo de audio eliminado: ${outputPath}`);
+                } catch (error) {
+                    console.error(`❌ No se pudo eliminar el archivo: ${outputPath}`, error);
+                }
+            }, 1000); // Espera 1 segundo antes de intentar borrar
         });
 
         // 🔹 Registrar cambios de estado del player
