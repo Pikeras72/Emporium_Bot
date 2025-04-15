@@ -856,50 +856,33 @@ async function transcribeAudioToText(audioFilePath, voiceChannel) {
     }
 
     try {
-        const transcripcion = await transcribeAudioLocally(audioFilePath);
-        console.log(`📝 Transcripción del audio: ${transcripcion}`);
+        const pythonScriptPath = path.join(__dirname, 'transcribe.py');
+
+        const transcription = await new Promise((resolve, reject) => {
+            execFile('python', [pythonScriptPath, audioFilePath], { encoding: 'utf8' }, (error, stdout, stderr) => {
+                if (error) return reject(`Error: ${stderr || error.message}`);
+                console.log(stderr); // Para ver si dice "Usando dispositivo: cuda"
+                resolve(stdout.trim());
+            });
+        });
+
+        console.log(`📝 Transcripción: ${transcription}`);
         if (voiceChannel) {
-            await processSpeechCommand(transcripcion, voiceChannel);
-        } else {
-            console.log("⚠️ No se detectó un canal de voz válido.");
+            await processSpeechCommand(transcription, voiceChannel);
         }
 
-        // Borrar el archivo de audio después de procesarlo
         fs.unlinkSync(audioFilePath);
         console.log(`🗑️ Archivo de audio eliminado: ${audioFilePath}`);
 
         const endTime = Date.now();
         const latency = endTime - startTime;
         console.log(`⌛ Respuesta del modelo en: ${latency}ms`);
-        
-    } catch (error) {
-        console.error(`❌ Error al transcribir el audio:`, error);
-        if (fs.existsSync(audioFilePath)) {
-            fs.unlinkSync(audioFilePath);
-            console.log(`🗑️ Archivo eliminado tras error: ${audioFilePath}`);
-        }
-    }
-}
 
-async function transcribeAudioLocally(audioFilePath) {
-    return new Promise((resolve, reject) => {
-        execFile('python', [path.join(__dirname, 'transcribe.py'), audioFilePath], (error, stdout, stderr) => {
-            console.log("⏳ Python output:", stdout);
-            console.log("⚠️ Python stderr:", stderr);
-        
-            if (error) {
-                console.error('❌ Error ejecutando Python:', error);
-                return reject(error);
-            }
-            try {
-                const result = JSON.parse(stdout);
-                resolve(result.text);
-            } catch (parseError) {
-                console.error('❌ Error al parsear la respuesta:', parseError);
-                reject(parseError);
-            }
-        });
-    });
+    } catch (err) {
+        console.error("❌ Error al transcribir:", err);
+        if (fs.existsSync(audioFilePath)) fs.unlinkSync(audioFilePath);
+        console.log(`🗑️ Archivo eliminado tras error: ${audioFilePath}`);
+    }
 }
 
 async function getAudioDuration(audioFilePath) {
@@ -920,11 +903,12 @@ async function getAudioDuration(audioFilePath) {
 async function processSpeechCommand(text, voiceChannel) {
     // Limpiar el texto para eliminar posibles espacios al principio o final
     const cleanedText = text.replace(/[.,]/g, '').trim();
-    console.log(`Texto limpio: "${cleanedText}"`);
+    const normalizedText = cleanedText.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    console.log(`📝 Transcripción NORMALIZADA: ${normalizedText}`);
     const regex_play = /^emporium[,]?\s*(?:reproduce|pon|ponme|reproduceme|pincha)\s+(.+?)(?:\s+de\s+(.+?))?\.?$/i;
-    const regex_stop = /^emporium[,]?\s*(?:para|det[eé]n|detente|calla)\s+(?:la m[uú]sica|la canci[oó]n|la reproducci[oó]n|el sonido)\.?$/i;
-    const match_play = cleanedText.match(regex_play);
-    const match_stop = cleanedText.match(regex_stop);
+    const regex_stop = /^emporium[,]?\s*(?:para|deten|detente|calla)\s+(?:la musica|la cancion|la reproduccion|el sonido)\.?$/i;
+    const match_play = normalizedText.match(regex_play);
+    const match_stop = normalizedText.match(regex_stop);
 
     if (match_play) {
         const songName = match_play[1]?.trim();  // Canción
